@@ -1,0 +1,456 @@
+{
+  "users": [
+    {
+      "firstName": "Максим",
+      "lastName": "Ходус",
+      "role": "admin",
+      "login": "maksim.hodus",
+      "password": "admin2026"
+    },
+    {
+      "firstName": "Maksym",
+      "lastName": "Khodus",
+      "role": "admin",
+      "login": "maksym",
+      "password": "admin2026"
+    }
+  ],
+  "products": [
+    {
+      "id": "digital-a4",
+      "category": "Цифровая печать",
+      "name": "Листовка A4",
+      "base": 0.12,
+      "margin": 1.75,
+      "minimum": 15
+    },
+    {
+      "id": "digital-business",
+      "category": "Цифровая печать",
+      "name": "Визитки",
+      "base": 0.06,
+      "margin": 2.1,
+      "minimum": 20
+    },
+    {
+      "id": "wide-banner",
+      "category": "Широкоформатная печать",
+      "name": "Баннер",
+      "base": 7.5,
+      "margin": 1.8,
+      "minimum": 25
+    },
+    {
+      "id": "wide-sticker",
+      "category": "Широкоформатная печать",
+      "name": "Наклейка",
+      "base": 9.2,
+      "margin": 1.9,
+      "minimum": 20
+    },
+    {
+      "id": "clothes-shirt",
+      "category": "Печать на одежде",
+      "name": "Футболка с печатью",
+      "base": 5.8,
+      "margin": 1.65,
+      "minimum": 30
+    },
+    {
+      "id": "souvenir-mug",
+      "category": "Сувенирная продукция",
+      "name": "Кружка с печатью",
+      "base": 3.4,
+      "margin": 1.7,
+      "minimum": 25
+    }
+  ],
+  "materials": [
+    {
+      "id": "paper-170",
+      "name": "Бумага 170 г/м²",
+      "price": 0.08,
+      "unit": "лист"
+    },
+    {
+      "id": "paper-300",
+      "name": "Картон 300 г/м²",
+      "price": 0.16,
+      "unit": "лист"
+    },
+    {
+      "id": "banner",
+      "name": "Баннерная ткань",
+      "price": 3.2,
+      "unit": "м²"
+    },
+    {
+      "id": "vinyl",
+      "name": "Самоклеящаяся пленка",
+      "price": 4.1,
+      "unit": "м²"
+    },
+    {
+      "id": "shirt",
+      "name": "Футболка базовая",
+      "price": 4.8,
+      "unit": "шт"
+    },
+    {
+      "id": "mug",
+      "name": "Кружка белая",
+      "price": 2.2,
+      "unit": "шт"
+    }
+  ],
+  "finishes": [
+    {
+      "id": "none",
+      "name": "Без доп. работ",
+      "price": 0,
+      "type": "за заказ"
+    },
+    {
+      "id": "cut",
+      "name": "Резка",
+      "price": 4,
+      "type": "за заказ"
+    },
+    {
+      "id": "lamination",
+      "name": "Ламинация",
+      "price": 0.35,
+      "type": "за единицу"
+    },
+    {
+      "id": "package",
+      "name": "Упаковка",
+      "price": 0.12,
+      "type": "за единицу"
+    },
+    {
+      "id": "install",
+      "name": "Монтаж",
+      "price": 25,
+      "type": "за заказ"
+    }
+  ],
+  "digitalPrint": {
+    "standardProducts": [],
+    "clickPrices": [
+      {
+        "click40": 0.065,
+        "click44": 0.13
+      }
+    ],
+    "materials": [
+      {
+        "type": "Материал без покрытия",
+        "name": "Serixo 80",
+        "sr3Price": 0.01853
+      },
+      {
+        "type": "Материал без покрытия",
+        "name": "Serixo 100",
+        "sr3Price": 0.02316
+      },
+      {
+        "type": "Материал без покрытия",
+        "name": "Nautilus 120",
+        "sr3Price": 0.06204
+      },
+      {
+        "type": "Материал без покрытия",
+        "name": "Serixo 170",
+        "sr3Price": 0.04124
+      },
+      {
+        "type": "Материал без покрытия",
+        "name": "Serixo 190",
+        "sr3Price": 0.044845
+      },
+      {
+        "type": "Материал без покрытия",
+        "name": "Serixo 300",
+        "sr3Price": 0.074925
+      },
+      {
+        "type": "Материал силк",
+        "name": "Maxi satin 120",
+        "sr3Price": 0.03
+      },
+      {
+        "type": "Материал силк",
+        "name": "Maxi satin 150",
+        "sr3Price": 0.0421
+      },
+      {
+        "type": "Материал силк",
+        "name": "Maxi satin 200",
+        "sr3Price": 0.053735
+      },
+      {
+        "type": "Материал силк",
+        "name": "Maxi satin 250",
+        "sr3Price": 0.06239
+      },
+      {
+        "type": "Материал силк",
+        "name": "Maxi satin 350",
+        "sr3Price": 0.17304
+      }
+    ],
+    "extraWorks": [
+      {
+        "name": "Roll lamination gloss",
+        "percent": 30
+      },
+      {
+        "name": "Roll lamination matt",
+        "percent": 30
+      },
+      {
+        "name": "Roll lamination silk",
+        "percent": 35
+      },
+      {
+        "name": "Pocket lamination gloss",
+        "percent": 40
+      },
+      {
+        "name": "Pocket lamination matt",
+        "percent": 40
+      },
+      {
+        "name": "Rounding of corners",
+        "percent": 30
+      },
+      {
+        "name": "Adding a hole",
+        "percent": 30
+      },
+      {
+        "name": "Staple binding",
+        "percent": 20
+      },
+      {
+        "name": "Spiral binding",
+        "percent": 30
+      },
+      {
+        "name": "Creasing 1tk",
+        "percent": 15
+      },
+      {
+        "name": "Creasing 2tk",
+        "percent": 20
+      },
+      {
+        "name": "Creasing 3tk",
+        "percent": 25
+      },
+      {
+        "name": "Strip of double-sided tape",
+        "percent": 30
+      }
+    ],
+    "quantityFormulas": [
+      {
+        "from": 1,
+        "to": 9,
+        "formula": "mat*1.3+click*18.5"
+      },
+      {
+        "from": 10,
+        "to": 19,
+        "formula": "mat*1.3+click*14.5"
+      },
+      {
+        "from": 20,
+        "to": 49,
+        "formula": "mat*1.3+click*10.5"
+      },
+      {
+        "from": 50,
+        "to": 99,
+        "formula": "mat*1.3+click*8"
+      },
+      {
+        "from": 100,
+        "to": 199,
+        "formula": "mat*1.3+click*5"
+      },
+      {
+        "from": 200,
+        "to": 399,
+        "formula": "mat*1.3+click*3.5"
+      },
+      {
+        "from": 400,
+        "to": 599,
+        "formula": "mat*1.3+click*3"
+      },
+      {
+        "from": 600,
+        "to": 999,
+        "formula": "mat*1.3+click*2.5"
+      },
+      {
+        "from": 1000,
+        "to": 100000000000000,
+        "formula": "mat*1.3+click*2"
+      }
+    ],
+    "cuttingCoefficients": [],
+    "clientTypes": {
+      "b2bPercent": 0,
+      "b2cPercent": 21
+    },
+    "minimumOrder": {
+      "price": 10
+    }
+  },
+  "widePrint": {
+    "rollStandardProducts": [],
+    "rollMaterials": [
+      {
+        "name": "Monomer white matt",
+        "price": 1.2
+      },
+      {
+        "name": "Monomer white gloss",
+        "price": 1.2
+      },
+      {
+        "name": "Monomer transp matt",
+        "price": 1.2
+      },
+      {
+        "name": "Monomer transp gloss",
+        "price": 1.2
+      },
+      {
+        "name": "Polimer white matt",
+        "price": 2.51
+      },
+      {
+        "name": "Polimer white gloss",
+        "price": 2.51
+      },
+      {
+        "name": "MacTac HTT",
+        "price": 2.31
+      },
+      {
+        "name": "Arlon DPF 8000 Supertack",
+        "price": 8.35
+      },
+      {
+        "name": "For auto MetaSCAPE",
+        "price": 11.76
+      },
+      {
+        "name": "Posters paper 200gr matt",
+        "price": 1
+      },
+      {
+        "name": "PP  Blockout",
+        "price": 2.37
+      },
+      {
+        "name": "Banner PVC 440g",
+        "price": 1.25
+      }
+    ],
+    "rollInk": {
+      "price": 3
+    },
+    "rollFormulas": [
+      {
+        "from": 0.000001,
+        "to": 4.99,
+        "formula": "(mat+20%)+(ink*3)"
+      },
+      {
+        "from": 5,
+        "to": 9.99,
+        "formula": "(mat+20%)+(ink*2.8)"
+      },
+      {
+        "from": 10,
+        "to": 19.99,
+        "formula": "(mat+20%)+(ink*2.6)"
+      },
+      {
+        "from": 20,
+        "to": 49.99,
+        "formula": "(mat+20%)+(ink*2.4)"
+      },
+      {
+        "from": 50,
+        "to": 99.99,
+        "formula": "(mat+20%)+(ink*2.2)"
+      },
+      {
+        "from": 100,
+        "to": 10000000000,
+        "formula": "(mat+20%)+(ink*2.2)"
+      }
+    ],
+    "rollExtraWorks": [
+      {
+        "name": "Lamination matt",
+        "percent": 30
+      },
+      {
+        "name": "Lamination gloss",
+        "percent": 30
+      },
+      {
+        "name": "Lamination floor",
+        "percent": 150
+      },
+      {
+        "name": "Kiss-cut",
+        "percent": 30
+      },
+      {
+        "name": "True-cut",
+        "percent": 45
+      }
+    ],
+    "rollClientTypes": {
+      "b2bPercent": 0,
+      "b2cPercent": 35
+    },
+    "rollMinimumOrder": {
+      "price": 15
+    }
+  },
+  "clothesPrint": {
+    "standardProducts": [],
+    "quantityFormulas": [
+      {
+        "from": 1,
+        "to": 1,
+        "formula": ""
+      }
+    ],
+    "carrierTypes": [
+      {
+        "name": "T-shirt standart white",
+        "price": 2.68
+      }
+    ],
+    "extraWorks": [
+      {
+        "name": "",
+        "percent": 0
+      }
+    ],
+    "clientTypes": {
+      "b2bPercent": 0,
+      "b2cPercent": 0
+    }
+  }
+}

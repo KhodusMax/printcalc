@@ -1,0 +1,1055 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PrintCalc</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main class="app-shell">
+    <section class="login-view" id="loginView" aria-labelledby="loginTitle">
+      <div class="login-panel">
+        <div class="brand-mark">PC</div>
+        <h1 id="loginTitle">PrintCalc</h1>
+        <p class="muted">Внутренний калькулятор стоимости продукции</p>
+        <div class="login-language-switch language-switch" aria-label="Выбор языка">
+          <button type="button" class="language-button" data-language="en">ENG</button>
+          <button type="button" class="language-button" data-language="ru">РУ</button>
+        </div>
+
+        <form id="loginForm" class="form-grid">
+          <label>
+            Логин
+            <input id="loginInput" name="login" type="text" autocomplete="username" value="maksim.hodus" required>
+          </label>
+          <label>
+            Пароль
+            <input id="passwordInput" name="password" type="password" autocomplete="current-password" value="admin2026" required>
+          </label>
+          <button type="submit" class="primary-action">Войти</button>
+          <p class="hint">Тестовый доступ: maksim.hodus / admin2026</p>
+          <p class="error-message" id="loginError" role="alert"></p>
+        </form>
+      </div>
+    </section>
+
+    <section class="dashboard-view is-hidden" id="dashboardView">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow" id="topbarUserRole">Администратор</p>
+          <h1 id="topbarUserName" data-no-translate>Максим Ходус</h1>
+        </div>
+        <div class="topbar-actions">
+          <div class="language-switch" aria-label="Выбор языка">
+            <button type="button" class="language-button" data-language="en">ENG</button>
+            <button type="button" class="language-button" data-language="ru">РУ</button>
+          </div>
+          <button type="button" class="ghost-action" id="logoutButton">Выйти</button>
+        </div>
+      </header>
+
+      <nav class="tabs" aria-label="Разделы калькулятора">
+        <button type="button" class="tab-button is-active" data-tab="order">Расчет цены</button>
+        <button type="button" class="tab-button" data-tab="settings">Формулы и коэффициенты</button>
+        <button type="button" class="tab-button" data-tab="users">Пользователи</button>
+      </nav>
+
+      <section class="tab-panel" id="orderPanel">
+        <div class="panel-header">
+          <div>
+            <p class="eyebrow">Рабочий расчет</p>
+            <h2>Расчет цены</h2>
+          </div>
+        </div>
+
+        <nav class="category-tabs" id="orderCategoryTabs" aria-label="Категории расчета"></nav>
+
+        <div class="workspace-grid">
+          <div class="order-forms">
+            <select id="categorySelect" class="is-hidden" aria-hidden="true"></select>
+
+            <form class="digital-calc-form" id="digitalOrderForm">
+              <section class="order-section">
+                <div class="order-section-title">Тип клиента</div>
+                <div class="mode-options" id="digitalClientTypeOptions">
+                  <label class="check-option">
+                    <input id="digitalB2BClientMode" type="checkbox">
+                    B2B клиент
+                  </label>
+                  <label class="check-option">
+                    <input id="digitalB2CClientMode" type="checkbox">
+                    B2C клиент
+                  </label>
+                </div>
+              </section>
+
+              <section class="order-section">
+                <div class="order-section-title">Просчет стоимости</div>
+                <div class="mode-options">
+                  <label class="check-option">
+                    <input id="digitalCostMode" type="checkbox" checked>
+                    Просчет стоимости
+                  </label>
+                  <label class="check-option">
+                    <input id="digitalStandardMode" type="checkbox">
+                    Стандартная продукция
+                  </label>
+                </div>
+              </section>
+
+              <div class="digital-calc-fields" id="digitalCostFields">
+                <section class="order-section">
+                  <div class="order-section-title">Материал</div>
+                  <div class="section-fields one-column">
+                    <label>
+                      Тип материала
+                      <select id="digitalOrderMaterialTypeSelect"></select>
+                    </label>
+                    <label>
+                      Выбор материала
+                      <select id="digitalOrderMaterialSelect"></select>
+                    </label>
+                  </div>
+                </section>
+
+                <section class="order-section">
+                  <div class="order-section-title">Размер</div>
+                  <div class="section-fields">
+                    <label>
+                      Ширина, мм
+                      <input id="digitalWidthInput" type="number" min="1" step="1" placeholder="Введите ширину">
+                    </label>
+                    <label>
+                      Высота, мм
+                      <input id="digitalHeightInput" type="number" min="1" step="1" placeholder="Введите высоту">
+                    </label>
+                  </div>
+                </section>
+
+                <section class="order-section">
+                  <div class="order-section-title">Тираж</div>
+                  <div class="section-fields one-column">
+                    <label>
+                      Ввод тиража
+                      <input id="digitalQuantityInput" type="number" min="1" step="1" placeholder="Введите тираж">
+                    </label>
+                  </div>
+                </section>
+
+                <section class="order-section">
+                  <div class="order-section-title">Тип печати</div>
+                  <div class="section-fields one-column">
+                    <label>
+                      Выбор типа печати
+                      <select id="digitalPrintTypeSelect">
+                        <option value="">Выберите тип печати</option>
+                        <option value="one-sided">Односторонняя печать</option>
+                        <option value="two-sided">Двухсторонняя печать</option>
+                      </select>
+                    </label>
+                  </div>
+                </section>
+
+                <section class="order-section">
+                  <div class="order-section-title">Дополнительные работы</div>
+                  <div class="extra-works-list" id="digitalOrderExtraWorks"></div>
+                </section>
+
+                <section class="order-section">
+                  <div class="order-section-title">Срочность</div>
+                  <div class="section-fields one-column">
+                    <label>
+                      Выбор срочности
+                      <select id="digitalUrgencySelect">
+                        <option value="">Выберите срочность</option>
+                        <option value="standard">Стандартная срочность, 3-5 рабочих дней</option>
+                        <option value="urgent">Срочная работа, +50%</option>
+                      </select>
+                    </label>
+                  </div>
+                </section>
+
+                <section class="order-section">
+                  <div class="order-section-title">Дополнительная скидка или надбавка</div>
+                  <div class="section-fields">
+                    <label>
+                      Тип корректировки
+                      <select id="digitalAdjustmentTypeSelect">
+                        <option value="discount">Скидка</option>
+                        <option value="surcharge">Надбавка</option>
+                      </select>
+                    </label>
+                    <label>
+                      Процент, %
+                      <input id="digitalDiscountInput" type="number" min="0" step="0.01" value="0">
+                    </label>
+                  </div>
+                </section>
+              </div>
+            </form>
+
+            <form class="digital-calc-form is-hidden" id="wideOrderForm">
+              <section class="order-section">
+                <div class="order-section-title">Тип широкоформатной печати</div>
+                <div class="mode-options" id="widePrintTypeOptions">
+                  <label class="check-option">
+                    <input id="wideRollPrintMode" type="checkbox" checked>
+                    Рулонная печать
+                  </label>
+                  <label class="check-option">
+                    <input id="wideSheetPrintMode" type="checkbox">
+                    Листовая печать
+                  </label>
+                </div>
+              </section>
+
+              <div class="digital-calc-fields" id="wideRollOrderFields">
+                <section class="order-section">
+                  <div class="order-section-title">Тип клиента</div>
+                  <div class="mode-options" id="wideClientTypeOptions">
+                    <label class="check-option">
+                      <input id="wideB2BClientMode" type="checkbox">
+                      B2B клиент
+                    </label>
+                    <label class="check-option">
+                      <input id="wideB2CClientMode" type="checkbox">
+                      B2C клиент
+                    </label>
+                  </div>
+                </section>
+
+                <section class="order-section">
+                  <div class="order-section-title">Материал</div>
+                  <div class="section-fields one-column">
+                    <label>
+                      Выбор материала
+                      <select id="wideOrderMaterialSelect"></select>
+                    </label>
+                  </div>
+                </section>
+
+                <section class="order-section">
+                  <div class="order-section-title">Размер</div>
+                  <div class="section-heading inline-heading">
+                    <p class="section-hint">Добавьте все размеры заказа. Площадь строк будет суммироваться.</p>
+                    <button type="button" class="add-action" id="addWideSizeRowButton">+</button>
+                  </div>
+                  <div class="table-wrap">
+                    <table class="compact-table">
+                      <thead>
+                        <tr>
+                          <th>Ширина, мм</th>
+                          <th>Высота, мм</th>
+                          <th>Количество</th>
+                          <th></th>
+                        </tr>
+                      </thead>
+                      <tbody id="wideSizeRowsTable">
+                        <tr data-wide-size-row>
+                          <td><input type="number" min="1" step="1" placeholder="Введите ширину" data-wide-size-field="width"></td>
+                          <td><input type="number" min="1" step="1" placeholder="Введите высоту" data-wide-size-field="height"></td>
+                          <td><input type="number" min="1" step="1" placeholder="Введите тираж" data-wide-size-field="quantity"></td>
+                          <td class="row-action-cell">
+                            <button type="button" class="delete-row-action" data-delete-wide-size-row aria-label="Удалить размер" title="Удалить размер">🗑</button>
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </section>
+
+                <section class="order-section">
+                  <div class="order-section-title">Печать</div>
+                  <div class="section-fields one-column">
+                    <label>
+                      Выбор печати
+                      <select id="widePrintColorSelect">
+                        <option value="">Выберите печать</option>
+                        <option value="4+0">4+0 (CMYK)</option>
+                        <option value="5+0">5+0 (CMYK + W, white)</option>
+                      </select>
+                    </label>
+                  </div>
+                </section>
+
+                <section class="order-section">
+                  <div class="order-section-title">Дополнительные работы</div>
+                  <div class="extra-works-list" id="wideOrderExtraWorks"></div>
+                </section>
+
+                <section class="order-section">
+                  <div class="order-section-title">Срочность</div>
+                  <div class="section-fields one-column">
+                    <label>
+                      Выбор срочности
+                      <select id="wideUrgencySelect">
+                        <option value="">Выберите срочность</option>
+                        <option value="standard">Стандартная срочность, 3-5 рабочих дней</option>
+                        <option value="urgent">Срочная работа, +50%</option>
+                      </select>
+                    </label>
+                  </div>
+                </section>
+
+                <section class="order-section">
+                  <div class="order-section-title">Дополнительная скидка или надбавка</div>
+                  <div class="section-fields">
+                    <label>
+                      Тип корректировки
+                      <select id="wideAdjustmentTypeSelect">
+                        <option value="discount">Скидка</option>
+                        <option value="surcharge">Надбавка</option>
+                      </select>
+                    </label>
+                    <label>
+                      Процент, %
+                      <input id="wideAdjustmentInput" type="number" min="0" step="0.01" value="0">
+                    </label>
+                  </div>
+                </section>
+              </div>
+            </form>
+
+            <form class="digital-calc-form is-hidden" id="clothesOrderForm">
+              <section class="order-section">
+                <div class="order-section-title">Тип клиента</div>
+                <div class="mode-options" id="clothesClientTypeOptions">
+                  <label class="check-option">
+                    <input id="clothesB2BClientMode" type="checkbox">
+                    B2B клиент
+                  </label>
+                  <label class="check-option">
+                    <input id="clothesB2CClientMode" type="checkbox">
+                    B2C клиент
+                  </label>
+                </div>
+              </section>
+
+              <section class="order-section">
+                <div class="order-section-title">Просчёт стоимости</div>
+                <div class="mode-options">
+                  <label class="check-option">
+                    <input id="clothesCostMode" type="checkbox" checked>
+                    Просчёт стоимости
+                  </label>
+                  <label class="check-option">
+                    <input id="clothesStandardMode" type="checkbox">
+                    Стандартная продукция
+                  </label>
+                </div>
+              </section>
+
+              <div class="digital-calc-fields" id="clothesCostFields">
+                <section class="order-section">
+                  <div class="order-section-title">Тип носителя</div>
+                  <div class="section-fields">
+                    <label>
+                      Выбор носителя
+                      <select id="clothesCarrierSelect"></select>
+                    </label>
+                    <label id="clothesCustomCarrierPriceWrap" class="is-hidden">
+                      Стоимость за единицу
+                      <input id="clothesCustomCarrierPriceInput" type="number" min="0" step="0.00001" value="0">
+                    </label>
+                  </div>
+                </section>
+
+                <section class="order-section">
+                  <div class="order-section-title">Тираж</div>
+                  <div class="section-fields one-column">
+                    <label>
+                      Количество
+                      <input id="clothesQuantityInput" type="number" min="1" step="1">
+                    </label>
+                  </div>
+                </section>
+
+                <section class="order-section">
+                  <div class="order-section-title">Дополнительные работы</div>
+                  <div class="extra-works-list" id="clothesOrderExtraWorks"></div>
+                </section>
+              </div>
+            </form>
+
+            <form class="calc-form" id="orderForm">
+              <label>
+                Продукт
+                <select id="productSelect"></select>
+              </label>
+              <label>
+                Тираж
+                <input id="quantityInput" type="number" min="1" step="1" value="100">
+              </label>
+              <label>
+                Площадь / размер в м²
+                <input id="areaInput" type="number" min="0" step="0.01" value="1">
+              </label>
+              <label>
+                Материал
+                <select id="materialSelect"></select>
+              </label>
+              <label>
+                Дополнительные работы
+                <select id="finishSelect"></select>
+              </label>
+              <label>
+                Срочность
+                <select id="urgencySelect">
+                  <option value="1">Обычный срок</option>
+                  <option value="1.25">Срочно +25%</option>
+                  <option value="1.5">Сегодня +50%</option>
+                </select>
+              </label>
+            </form>
+          </div>
+
+          <aside class="result-panel" aria-live="polite">
+            <p class="eyebrow">Итог</p>
+            <p class="validation-message" id="orderValidationMessage" role="alert"></p>
+            <p class="validation-message" id="profitWarningMessage" role="alert"></p>
+            <div class="total-price" id="totalPrice">0.00 €</div>
+            <dl class="price-breakdown">
+              <div>
+                <dt id="costLabel">Себестоимость</dt>
+                <dd id="costValue">0.00 €</dd>
+              </div>
+              <div>
+                <dt id="marginLabel">Наценка</dt>
+                <dd id="marginValue">0.00 €</dd>
+              </div>
+              <div>
+                <dt id="unitLabel">Цена за единицу</dt>
+                <dd id="unitPrice">0.00 €</dd>
+              </div>
+              <div>
+                <dt id="minimumLabel">Минимальный заказ</dt>
+                <dd id="minimumValue">0.00 €</dd>
+              </div>
+            </dl>
+          </aside>
+        </div>
+      </section>
+
+      <section class="tab-panel is-hidden" id="settingsPanel">
+        <div class="panel-header">
+          <div>
+            <p class="eyebrow">База расчетов</p>
+            <h2>Формулы и коэффициенты</h2>
+          </div>
+        </div>
+
+        <nav class="category-tabs" id="settingsCategoryTabs" aria-label="Категории коэффициентов"></nav>
+
+        <div class="digital-settings is-hidden" id="digitalSettings">
+          <nav class="subtabs" id="digitalSettingsTabs" aria-label="Разделы цифровой печати"></nav>
+
+          <section class="data-section" data-digital-panel="standard">
+            <div class="section-heading">
+              <h3>Стандартные продукты</h3>
+              <button type="button" class="add-action" data-add-digital-row="standardProducts">+</button>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th></th>
+                    <th>Категория</th>
+                    <th>Название продукта</th>
+                    <th>Базовая цена за количество</th>
+                    <th>Количество</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody id="digitalStandardProductsTable"></tbody>
+              </table>
+            </div>
+            <div class="section-actions">
+              <button type="button" class="save-action" data-save-digital-section="standard">Сохранить</button>
+              <button type="button" class="undo-delete-action is-hidden" data-undo-digital-delete="standard">Отменить удаление</button>
+              <span class="save-status" data-save-status="standard" aria-live="polite"></span>
+            </div>
+          </section>
+
+          <section class="data-section is-hidden" data-digital-panel="clicks">
+            <div class="section-heading">
+              <h3>Цена за клик</h3>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Клик 4+0</th>
+                    <th>Клик 4+4</th>
+                  </tr>
+                </thead>
+                <tbody id="digitalClickPricesTable"></tbody>
+              </table>
+            </div>
+            <div class="section-actions">
+              <button type="button" class="save-action" data-save-digital-section="clicks">Сохранить</button>
+              <span class="save-status" data-save-status="clicks" aria-live="polite"></span>
+            </div>
+          </section>
+
+          <section class="data-section is-hidden" data-digital-panel="materials">
+            <div class="section-heading">
+              <h3>Цена за материал</h3>
+              <button type="button" class="add-action" data-add-digital-row="materials">+</button>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th></th>
+                    <th>Тип материала</th>
+                    <th>Название материала</th>
+                    <th>Стоимость листа SRA3</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody id="digitalMaterialsTable"></tbody>
+              </table>
+            </div>
+            <div class="section-actions">
+              <button type="button" class="save-action" data-save-digital-section="materials">Сохранить</button>
+              <button type="button" class="undo-delete-action is-hidden" data-undo-digital-delete="materials">Отменить удаление</button>
+              <span class="save-status" data-save-status="materials" aria-live="polite"></span>
+            </div>
+          </section>
+
+          <section class="data-section is-hidden" data-digital-panel="works">
+            <div class="section-heading">
+              <h3>Дополнительные работы</h3>
+              <button type="button" class="add-action" data-add-digital-row="extraWorks">+</button>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th></th>
+                    <th>Название операции</th>
+                    <th>Процент к стоимости</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody id="digitalExtraWorksTable"></tbody>
+              </table>
+            </div>
+            <div class="section-actions">
+              <button type="button" class="save-action" data-save-digital-section="works">Сохранить</button>
+              <button type="button" class="undo-delete-action is-hidden" data-undo-digital-delete="works">Отменить удаление</button>
+              <span class="save-status" data-save-status="works" aria-live="polite"></span>
+            </div>
+          </section>
+
+          <section class="data-section is-hidden" data-digital-panel="quantityFormulas">
+            <div class="section-heading">
+              <h3>Формулы количества</h3>
+              <button type="button" class="add-action" data-add-digital-row="quantityFormulas">+</button>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th></th>
+                    <th>Количество от</th>
+                    <th>Количество до</th>
+                    <th>Формула цены за лист</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody id="digitalQuantityFormulasTable"></tbody>
+              </table>
+            </div>
+            <div class="section-actions">
+              <button type="button" class="save-action" data-save-digital-section="quantityFormulas">Сохранить</button>
+              <button type="button" class="undo-delete-action is-hidden" data-undo-digital-delete="quantityFormulas">Отменить удаление</button>
+              <span class="save-status" data-save-status="quantityFormulas" aria-live="polite"></span>
+            </div>
+          </section>
+
+          <section class="data-section is-hidden" data-digital-panel="clientTypes">
+            <div class="section-heading">
+              <h3>Тип клиента</h3>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Тип клиента</th>
+                    <th>Дополнительный процент</th>
+                  </tr>
+                </thead>
+                <tbody id="digitalClientTypesTable"></tbody>
+              </table>
+            </div>
+            <div class="section-actions">
+              <button type="button" class="save-action" data-save-digital-section="clientTypes">Сохранить</button>
+              <span class="save-status" data-save-status="clientTypes" aria-live="polite"></span>
+            </div>
+          </section>
+
+          <section class="data-section is-hidden" data-digital-panel="minimumOrder">
+            <div class="section-heading">
+              <h3>Стоимость минимального заказа</h3>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Минимальная стоимость заказа</th>
+                  </tr>
+                </thead>
+                <tbody id="digitalMinimumOrderTable"></tbody>
+              </table>
+            </div>
+            <div class="section-actions">
+              <button type="button" class="save-action" data-save-digital-section="minimumOrder">Сохранить</button>
+              <span class="save-status" data-save-status="minimumOrder" aria-live="polite"></span>
+            </div>
+          </section>
+
+          <section class="data-section is-hidden" data-digital-panel="cuttingCoefficients">
+            <div class="section-heading">
+              <h3>Коэффициент за резку</h3>
+              <button type="button" class="add-action" data-add-digital-row="cuttingCoefficients">+</button>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th></th>
+                    <th>Количество от</th>
+                    <th>Количество до</th>
+                    <th>Процент за резку</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody id="digitalCuttingCoefficientsTable"></tbody>
+              </table>
+            </div>
+            <div class="section-actions">
+              <button type="button" class="save-action" data-save-digital-section="cuttingCoefficients">Сохранить</button>
+              <button type="button" class="undo-delete-action is-hidden" data-undo-digital-delete="cuttingCoefficients">Отменить удаление</button>
+              <span class="save-status" data-save-status="cuttingCoefficients" aria-live="polite"></span>
+            </div>
+          </section>
+        </div>
+
+        <div class="digital-settings is-hidden" id="wideSettings">
+          <section class="data-section">
+            <div class="section-heading">
+              <h3>Тип широкоформатной печати</h3>
+            </div>
+            <div class="mode-options">
+              <label class="check-option">
+                <input id="wideSettingsRollMode" type="checkbox" checked>
+                Рулонная печать
+              </label>
+              <label class="check-option">
+                <input id="wideSettingsSheetMode" type="checkbox">
+                Листовая печать
+              </label>
+            </div>
+          </section>
+
+          <div id="wideRollSettings">
+            <nav class="subtabs" id="wideSettingsTabs" aria-label="Разделы рулонной печати"></nav>
+
+            <section class="data-section" data-wide-panel="rollStandardProducts">
+              <div class="section-heading">
+                <h3>Стандартные продукты</h3>
+                <button type="button" class="add-action" data-add-wide-row="rollStandardProducts">+</button>
+              </div>
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th></th>
+                      <th>Категория</th>
+                      <th>Название продукта</th>
+                      <th>Базовая цена за количество</th>
+                      <th>Количество</th>
+                      <th></th>
+                    </tr>
+                  </thead>
+                  <tbody id="wideRollStandardProductsTable"></tbody>
+                </table>
+              </div>
+              <div class="section-actions">
+                <button type="button" class="save-action" data-save-wide-section="rollStandardProducts">Сохранить</button>
+                <button type="button" class="undo-delete-action is-hidden" data-undo-wide-delete="rollStandardProducts">Отменить удаление</button>
+                <span class="save-status" data-wide-save-status="rollStandardProducts" aria-live="polite"></span>
+              </div>
+            </section>
+
+            <section class="data-section is-hidden" data-wide-panel="rollFormulas">
+              <div class="section-heading">
+                <h3>Формулы</h3>
+                <button type="button" class="add-action" data-add-wide-row="rollFormulas">+</button>
+              </div>
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th></th>
+                      <th>м² от</th>
+                      <th>м² до</th>
+                      <th>Формула</th>
+                      <th></th>
+                    </tr>
+                  </thead>
+                  <tbody id="wideRollFormulasTable"></tbody>
+                </table>
+              </div>
+              <div class="section-actions">
+                <button type="button" class="save-action" data-save-wide-section="rollFormulas">Сохранить</button>
+                <button type="button" class="undo-delete-action is-hidden" data-undo-wide-delete="rollFormulas">Отменить удаление</button>
+                <span class="save-status" data-wide-save-status="rollFormulas" aria-live="polite"></span>
+              </div>
+            </section>
+
+            <section class="data-section is-hidden" data-wide-panel="rollInk">
+              <div class="section-heading">
+                <h3>Цена краски за м²</h3>
+              </div>
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Стоимость краски за м²</th>
+                    </tr>
+                  </thead>
+                  <tbody id="wideRollInkTable"></tbody>
+                </table>
+              </div>
+              <div class="section-actions">
+                <button type="button" class="save-action" data-save-wide-section="rollInk">Сохранить</button>
+                <span class="save-status" data-wide-save-status="rollInk" aria-live="polite"></span>
+              </div>
+            </section>
+
+            <section class="data-section is-hidden" data-wide-panel="rollMaterials">
+              <div class="section-heading">
+                <h3>Материалы</h3>
+                <button type="button" class="add-action" data-add-wide-row="rollMaterials">+</button>
+              </div>
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th></th>
+                      <th>Название материала</th>
+                      <th>Стоимость за м²</th>
+                      <th></th>
+                    </tr>
+                  </thead>
+                  <tbody id="wideRollMaterialsTable"></tbody>
+                </table>
+              </div>
+              <div class="section-actions">
+                <button type="button" class="save-action" data-save-wide-section="rollMaterials">Сохранить</button>
+                <button type="button" class="undo-delete-action is-hidden" data-undo-wide-delete="rollMaterials">Отменить удаление</button>
+                <span class="save-status" data-wide-save-status="rollMaterials" aria-live="polite"></span>
+              </div>
+            </section>
+
+            <section class="data-section is-hidden" data-wide-panel="rollExtraWorks">
+              <div class="section-heading">
+                <h3>Дополнительные работы</h3>
+                <button type="button" class="add-action" data-add-wide-row="rollExtraWorks">+</button>
+              </div>
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th></th>
+                      <th>Название операции</th>
+                      <th>Процент к стоимости</th>
+                      <th></th>
+                    </tr>
+                  </thead>
+                  <tbody id="wideRollExtraWorksTable"></tbody>
+                </table>
+              </div>
+              <div class="section-actions">
+                <button type="button" class="save-action" data-save-wide-section="rollExtraWorks">Сохранить</button>
+                <button type="button" class="undo-delete-action is-hidden" data-undo-wide-delete="rollExtraWorks">Отменить удаление</button>
+                <span class="save-status" data-wide-save-status="rollExtraWorks" aria-live="polite"></span>
+              </div>
+            </section>
+
+            <section class="data-section is-hidden" data-wide-panel="rollClientTypes">
+              <div class="section-heading">
+                <h3>Тип клиента</h3>
+              </div>
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Тип клиента</th>
+                      <th>Дополнительный процент</th>
+                    </tr>
+                  </thead>
+                  <tbody id="wideRollClientTypesTable"></tbody>
+                </table>
+              </div>
+              <div class="section-actions">
+                <button type="button" class="save-action" data-save-wide-section="rollClientTypes">Сохранить</button>
+                <span class="save-status" data-wide-save-status="rollClientTypes" aria-live="polite"></span>
+              </div>
+            </section>
+
+            <section class="data-section is-hidden" data-wide-panel="rollMinimumOrder">
+              <div class="section-heading">
+                <h3>Стоимость минимального заказа</h3>
+              </div>
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Минимальная стоимость заказа</th>
+                    </tr>
+                  </thead>
+                  <tbody id="wideRollMinimumOrderTable"></tbody>
+                </table>
+              </div>
+              <div class="section-actions">
+                <button type="button" class="save-action" data-save-wide-section="rollMinimumOrder">Сохранить</button>
+                <span class="save-status" data-wide-save-status="rollMinimumOrder" aria-live="polite"></span>
+              </div>
+            </section>
+          </div>
+
+          <section class="data-section is-hidden" id="wideSheetSettings">
+            <div class="section-heading">
+              <h3>Листовая печать</h3>
+              <p class="section-hint">Раздел подготовлен. Наполним его позже.</p>
+            </div>
+          </section>
+        </div>
+
+        <div class="digital-settings is-hidden" id="clothesSettings">
+          <nav class="subtabs" id="clothesSettingsTabs" aria-label="Разделы печати на одежде"></nav>
+
+          <section class="data-section" data-clothes-panel="standardProducts">
+            <div class="section-heading">
+              <h3>Стандартные продукты</h3>
+              <button type="button" class="add-action" data-add-clothes-row="standardProducts">+</button>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th></th>
+                    <th>Категория</th>
+                    <th>Название продукта</th>
+                    <th>Базовая цена за количество</th>
+                    <th>Количество</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody id="clothesStandardProductsTable"></tbody>
+              </table>
+            </div>
+            <div class="section-actions">
+              <button type="button" class="save-action" data-save-clothes-section="standardProducts">Сохранить</button>
+              <button type="button" class="undo-delete-action is-hidden" data-undo-clothes-delete="standardProducts">Отменить удаление</button>
+              <span class="save-status" data-clothes-save-status="standardProducts" aria-live="polite"></span>
+            </div>
+          </section>
+
+          <section class="data-section is-hidden" data-clothes-panel="quantityFormulas">
+            <div class="section-heading">
+              <h3>Формулы количества</h3>
+              <button type="button" class="add-action" data-add-clothes-row="quantityFormulas">+</button>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th></th>
+                    <th>Количество от</th>
+                    <th>Количество до</th>
+                    <th>Формула</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody id="clothesQuantityFormulasTable"></tbody>
+              </table>
+            </div>
+            <div class="section-actions">
+              <button type="button" class="save-action" data-save-clothes-section="quantityFormulas">Сохранить</button>
+              <button type="button" class="undo-delete-action is-hidden" data-undo-clothes-delete="quantityFormulas">Отменить удаление</button>
+              <span class="save-status" data-clothes-save-status="quantityFormulas" aria-live="polite"></span>
+            </div>
+          </section>
+
+          <section class="data-section is-hidden" data-clothes-panel="carrierTypes">
+            <div class="section-heading">
+              <h3>Тип носителя</h3>
+              <button type="button" class="add-action" data-add-clothes-row="carrierTypes">+</button>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th></th>
+                    <th>Тип носителя</th>
+                    <th>Стоимость за единицу</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody id="clothesCarrierTypesTable"></tbody>
+              </table>
+            </div>
+            <div class="section-actions">
+              <button type="button" class="save-action" data-save-clothes-section="carrierTypes">Сохранить</button>
+              <button type="button" class="undo-delete-action is-hidden" data-undo-clothes-delete="carrierTypes">Отменить удаление</button>
+              <span class="save-status" data-clothes-save-status="carrierTypes" aria-live="polite"></span>
+            </div>
+          </section>
+
+          <section class="data-section is-hidden" data-clothes-panel="extraWorks">
+            <div class="section-heading">
+              <h3>Дополнительные работы</h3>
+              <button type="button" class="add-action" data-add-clothes-row="extraWorks">+</button>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th></th>
+                    <th>Название операции</th>
+                    <th>Процент к стоимости</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody id="clothesExtraWorksTable"></tbody>
+              </table>
+            </div>
+            <div class="section-actions">
+              <button type="button" class="save-action" data-save-clothes-section="extraWorks">Сохранить</button>
+              <button type="button" class="undo-delete-action is-hidden" data-undo-clothes-delete="extraWorks">Отменить удаление</button>
+              <span class="save-status" data-clothes-save-status="extraWorks" aria-live="polite"></span>
+            </div>
+          </section>
+
+          <section class="data-section is-hidden" data-clothes-panel="clientTypes">
+            <div class="section-heading">
+              <h3>Тип клиента</h3>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Тип клиента</th>
+                    <th>Дополнительный процент</th>
+                  </tr>
+                </thead>
+                <tbody id="clothesClientTypesTable"></tbody>
+              </table>
+            </div>
+            <div class="section-actions">
+              <button type="button" class="save-action" data-save-clothes-section="clientTypes">Сохранить</button>
+              <span class="save-status" data-clothes-save-status="clientTypes" aria-live="polite"></span>
+            </div>
+          </section>
+        </div>
+
+        <div class="settings-grid" id="genericSettings">
+          <section class="data-section">
+            <div class="section-heading">
+              <h3 id="productsSectionTitle">Продукты направления</h3>
+              <p id="productsSectionHint" class="section-hint"></p>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Категория</th>
+                    <th>Продукт</th>
+                    <th>База</th>
+                    <th>Наценка</th>
+                    <th>Мин. заказ</th>
+                  </tr>
+                </thead>
+                <tbody id="productsTable"></tbody>
+              </table>
+            </div>
+          </section>
+
+          <section class="data-section">
+            <h3>Материалы</h3>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Материал</th>
+                    <th>Стоимость</th>
+                    <th>Ед.</th>
+                  </tr>
+                </thead>
+                <tbody id="materialsTable"></tbody>
+              </table>
+            </div>
+          </section>
+
+          <section class="data-section">
+            <h3>Дополнительные работы</h3>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Операция</th>
+                    <th>Стоимость</th>
+                    <th>Тип</th>
+                  </tr>
+                </thead>
+                <tbody id="finishesTable"></tbody>
+              </table>
+            </div>
+          </section>
+        </div>
+      </section>
+
+      <section class="tab-panel is-hidden" id="usersPanel">
+        <div class="panel-header">
+          <div>
+            <p class="eyebrow">Доступ к системе</p>
+            <h2>Пользователи</h2>
+          </div>
+          <button type="button" class="add-action" id="addUserButton">+</button>
+        </div>
+
+        <section class="data-section">
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th></th>
+                  <th>Имя</th>
+                  <th>Фамилия</th>
+                  <th>Категория</th>
+                  <th>Логин</th>
+                  <th>Пароль</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="usersTable"></tbody>
+            </table>
+          </div>
+          <div class="section-actions">
+            <button type="button" class="save-action" id="saveUsersButton">Сохранить</button>
+            <button type="button" class="undo-delete-action is-hidden" id="undoUserDeleteButton">Отменить удаление</button>
+            <span class="save-status" id="usersSaveStatus" aria-live="polite"></span>
+          </div>
+        </section>
+      </section>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
