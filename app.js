@@ -860,6 +860,20 @@ function getCurrentUser() {
     || defaults.users[0];
 }
 
+function isCurrentUserAdmin() {
+  return getCurrentUser().role === "admin";
+}
+
+function activateTopLevelTab(tabName) {
+  document.querySelectorAll(".tab-button").forEach((item) => {
+    item.classList.toggle("is-active", item.dataset.tab === tabName);
+  });
+  document.querySelectorAll(".tab-panel").forEach((panel) => {
+    panel.classList.add("is-hidden");
+  });
+  document.querySelector(`#${tabName}Panel`)?.classList.remove("is-hidden");
+}
+
 function findLoginUser(login, password) {
   return settings.users.find((item) => item.login === login && item.password === password)
     || (login === ADMIN_LOGIN && password === ADMIN_PASSWORD ? defaults.users[0] : null);
@@ -877,8 +891,23 @@ function updateTopbarUser() {
   topbarUserName.textContent = name || user.login || "PrintCalc";
 }
 
+function applyRoleAccess() {
+  const isAdmin = isCurrentUserAdmin();
+
+  document.querySelectorAll("[data-admin-only]").forEach((element) => {
+    element.classList.toggle("is-hidden", !isAdmin);
+    element.toggleAttribute("aria-hidden", !isAdmin);
+  });
+
+  const activeRestrictedTab = document.querySelector(".tab-button.is-active[data-admin-only]");
+  if (!isAdmin && activeRestrictedTab) {
+    activateTopLevelTab("order");
+  }
+}
+
 function renderAll() {
   updateTopbarUser();
+  applyRoleAccess();
   renderCategoryTabs();
   renderDigitalSettingsTabs();
   renderWideSettingsTabs();
@@ -2594,14 +2623,16 @@ languageButtons.forEach((button) => {
 
 document.querySelectorAll(".tab-button").forEach((button) => {
   button.addEventListener("click", () => {
+    if (button.hasAttribute("data-admin-only") && !isCurrentUserAdmin()) {
+      activateTopLevelTab("order");
+      return;
+    }
+
     if (discardPendingDeletesWithWarning() || discardPendingWideDeletesWithWarning() || discardPendingClothesDeletesWithWarning() || discardPendingUserDeletesWithWarning()) {
       return;
     }
 
-    document.querySelectorAll(".tab-button").forEach((item) => item.classList.remove("is-active"));
-    document.querySelectorAll(".tab-panel").forEach((panel) => panel.classList.add("is-hidden"));
-    button.classList.add("is-active");
-    document.querySelector(`#${button.dataset.tab}Panel`).classList.remove("is-hidden");
+    activateTopLevelTab(button.dataset.tab);
   });
 });
 
