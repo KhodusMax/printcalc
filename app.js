@@ -6,6 +6,7 @@ const LANGUAGE_STORAGE_KEY = "printcalc-language";
 const AUTH_STORAGE_KEY = "printcalc-authenticated";
 const CURRENT_USER_STORAGE_KEY = "printcalc-current-user-login";
 const SETTINGS_API_URLS = ["/api/settings", "http://127.0.0.1:4174/api/settings"];
+const SETTINGS_FILE_URLS = ["data/settings.json", "/data/settings.json"];
 const DIGITAL_CATEGORY = "Цифровая печать";
 const WIDE_CATEGORY = "Широкоформатная печать";
 const CLOTHES_CATEGORY = "Печать на одежде";
@@ -643,6 +644,17 @@ async function loadSettings() {
       }
     } catch {
       // Try the next API URL. Static file mode has no API.
+    }
+  }
+
+  for (const fileUrl of SETTINGS_FILE_URLS) {
+    try {
+      const response = await fetch(fileUrl, { cache: "no-store" });
+      if (response.ok) {
+        return normalizeSettings(await response.json());
+      }
+    } catch {
+      // Try the next JSON file URL.
     }
   }
 

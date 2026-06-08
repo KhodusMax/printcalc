@@ -1,13 +1,6 @@
 {
   "users": [
     {
-      "firstName": "Максим",
-      "lastName": "Ходус",
-      "role": "admin",
-      "login": "maksim.hodus",
-      "password": "admin2026"
-    },
-    {
       "firstName": "Maksym",
       "lastName": "Khodus",
       "role": "admin",
