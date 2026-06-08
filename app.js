@@ -1,7 +1,6 @@
 const ADMIN_LOGIN = "maksim.hodus";
 const ADMIN_PASSWORD = "admin2026";
 const STORAGE_KEY = "printcalc-settings-v1";
-const STORAGE_MIGRATION_KEY = "printcalc-settings-json-migrated-v1";
 const LANGUAGE_STORAGE_KEY = "printcalc-language";
 const AUTH_STORAGE_KEY = "printcalc-authenticated";
 const CURRENT_USER_STORAGE_KEY = "printcalc-current-user-login";
@@ -629,17 +628,7 @@ async function loadSettings() {
     try {
       const response = await fetch(apiUrl, { cache: "no-store" });
       if (response.ok) {
-        const serverSettings = normalizeSettings(await response.json());
-        const shouldMigrateLocal = localSettings
-          && (!localStorage.getItem(STORAGE_MIGRATION_KEY) || (location.port === "4173" && apiUrl.includes("4174")));
-
-        if (shouldMigrateLocal) {
-          await saveSettingsToServer(localSettings);
-          localStorage.setItem(STORAGE_MIGRATION_KEY, "true");
-          return localSettings;
-        }
-
-        return serverSettings;
+        return normalizeSettings(await response.json());
       }
     } catch {
       // Try the next API URL. Static file mode has no API.
@@ -658,14 +647,10 @@ async function loadSettings() {
   }
 
   if (localSettings) {
-    await saveSettingsToServer(localSettings);
-    localStorage.setItem(STORAGE_MIGRATION_KEY, "true");
     return localSettings;
   }
 
-  const defaultSettings = structuredClone(defaults);
-  await saveSettingsToServer(defaultSettings);
-  return defaultSettings;
+  return structuredClone(defaults);
 }
 
 function normalizeSettings(savedSettings) {
@@ -778,11 +763,11 @@ function normalizeSettings(savedSettings) {
   };
   normalized.clothesPrint.clientTypes.b2bPercent = Number(normalized.clothesPrint.clientTypes.b2bPercent) || 0;
   normalized.clothesPrint.clientTypes.b2cPercent = Number(normalized.clothesPrint.clientTypes.b2cPercent) || 0;
-  const normalizedUsersSource = normalized.users || defaults.users;
+  const normalizedUsersSource = Array.isArray(normalized.users) ? normalized.users : defaults.users;
   normalized.users = normalizedUsersSource.map((user, index) => {
     const firstName = user.firstName || "";
     const lastName = user.lastName || "";
-    const isDefaultAdmin = normalizedUsersSource.length === 1 || user.login === ADMIN_LOGIN || (firstName === "Максим" && lastName === "Ходус");
+    const isDefaultAdmin = normalizedUsersSource.length === 1 && index === 0;
 
     return {
       firstName,
@@ -796,9 +781,6 @@ function normalizeSettings(savedSettings) {
   });
   if (normalized.users.length === 0) {
     normalized.users = structuredClone(defaults.users);
-  }
-  if (!normalized.users.some((user) => user.login === ADMIN_LOGIN)) {
-    normalized.users.unshift(structuredClone(defaults.users[0]));
   }
 
   return normalized;
@@ -866,7 +848,6 @@ function showLogin() {
 function getCurrentUser() {
   const login = sessionStorage.getItem(CURRENT_USER_STORAGE_KEY);
   return settings.users.find((user) => user.login === login)
-    || (login === ADMIN_LOGIN ? defaults.users[0] : null)
     || settings.users[0]
     || defaults.users[0];
 }
@@ -886,8 +867,7 @@ function activateTopLevelTab(tabName) {
 }
 
 function findLoginUser(login, password) {
-  return settings.users.find((item) => item.login === login && item.password === password)
-    || (login === ADMIN_LOGIN && password === ADMIN_PASSWORD ? defaults.users[0] : null);
+  return settings.users.find((item) => item.login === login && item.password === password);
 }
 
 function updateTopbarUser() {
