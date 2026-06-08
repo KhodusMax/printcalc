@@ -1650,6 +1650,25 @@ function showUsersStatus(message, isError = false) {
   usersSaveStatus.classList.toggle("is-error", isError);
 }
 
+function getRemainingUsersAfterPendingDeletes() {
+  return settings.users.filter((_, index) => !pendingUserDeletes.has(index));
+}
+
+function hasRemainingAdminAfterPendingDeletes() {
+  return getRemainingUsersAfterPendingDeletes().some((user) => user.role === "admin");
+}
+
+function canDeleteUser(index) {
+  const user = settings.users[index];
+  if (!user || user.role !== "admin") {
+    return true;
+  }
+
+  return settings.users.some((item, itemIndex) => {
+    return itemIndex !== index && !pendingUserDeletes.has(itemIndex) && item.role === "admin";
+  });
+}
+
 function discardPendingUserDeletesWithWarning() {
   if (!hasPendingUserDeletes()) {
     return false;
@@ -1703,9 +1722,14 @@ function renderUsersTable() {
 }
 
 function validateUsers() {
-  const remainingUsers = settings.users.filter((_, index) => !pendingUserDeletes.has(index));
+  const remainingUsers = getRemainingUsersAfterPendingDeletes();
   if (remainingUsers.length === 0) {
     showUsersStatus("Нельзя сохранить список без пользователей.", true);
+    return false;
+  }
+
+  if (!hasRemainingAdminAfterPendingDeletes()) {
+    showUsersStatus("В приложении должен остаться хотя бы один администратор.", true);
     return false;
   }
 
@@ -3286,7 +3310,13 @@ document.addEventListener("click", (event) => {
 
   const deleteUserButton = event.target.closest("[data-delete-user-row]");
   if (deleteUserButton) {
-    pendingUserDeletes.add(Number(deleteUserButton.dataset.index));
+    const index = Number(deleteUserButton.dataset.index);
+    if (!canDeleteUser(index)) {
+      showUsersStatus("Нельзя удалить последнего администратора. В приложении должен остаться хотя бы один администратор.", true);
+      return;
+    }
+
+    pendingUserDeletes.add(index);
     renderUsersTable();
     showUsersStatus("Пользователь отмечен на удаление. Нажмите «Сохранить».", true);
     return;
