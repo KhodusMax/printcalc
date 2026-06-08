@@ -6,6 +6,13 @@
       "role": "admin",
       "login": "maksym",
       "password": "admin2026"
+    },
+    {
+      "firstName": "Viia",
+      "lastName": "Eller",
+      "role": "seller",
+      "login": "viia",
+      "password": "viia2026"
     }
   ],
   "products": [

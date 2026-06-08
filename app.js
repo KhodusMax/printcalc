@@ -58,7 +58,6 @@ const UI_TRANSLATIONS = {
   "Логин": "Login",
   "Пароль": "Password",
   "Войти": "Sign in",
-  "Тестовый доступ: maksim.hodus / admin2026": "Test access: maksim.hodus / admin2026",
   "Администратор": "Administrator",
   "Выйти": "Log out",
   "Расчет цены": "Price calculation",
