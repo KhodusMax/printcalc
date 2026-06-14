@@ -6,6 +6,7 @@ const AUTH_STORAGE_KEY = "printcalc-authenticated";
 const CURRENT_USER_STORAGE_KEY = "printcalc-current-user-login";
 const SETTINGS_API_URLS = ["/api/settings", "http://127.0.0.1:4174/api/settings"];
 const SETTINGS_FILE_URLS = ["data/settings.json", "/data/settings.json"];
+const CUSTOM_WIDE_MATERIAL_VALUE = "__custom__";
 const DIGITAL_CATEGORY = "Цифровая печать";
 const WIDE_CATEGORY = "Широкоформатная печать";
 const CLOTHES_CATEGORY = "Печать на одежде";
@@ -86,6 +87,9 @@ const UI_TRANSLATIONS = {
   "Выберите материал": "Select material",
   "Нет материалов": "No materials",
   "Нет материалов этого типа": "No materials of this type",
+  "Кастомный материал": "Custom material",
+  "Стоимость кастомного материала за м²": "Custom material cost per m²",
+  "Укажите стоимость кастомного материала за м²": "Enter custom material cost per m²",
   "Материал без покрытия": "Uncoated material",
   "Материал силк": "Silk material",
   "Специальный материал": "Special material",
@@ -403,6 +407,8 @@ const wideClientTypeOptions = document.querySelector("#wideClientTypeOptions");
 const wideB2BClientMode = document.querySelector("#wideB2BClientMode");
 const wideB2CClientMode = document.querySelector("#wideB2CClientMode");
 const wideOrderMaterialSelect = document.querySelector("#wideOrderMaterialSelect");
+const wideCustomMaterialPriceWrap = document.querySelector("#wideCustomMaterialPriceWrap");
+const wideCustomMaterialPriceInput = document.querySelector("#wideCustomMaterialPriceInput");
 const wideSizeRowsTable = document.querySelector("#wideSizeRowsTable");
 const addWideSizeRowButton = document.querySelector("#addWideSizeRowButton");
 const widePrintColorSelect = document.querySelector("#widePrintColorSelect");
@@ -1028,13 +1034,17 @@ function renderWideOrderSelectors() {
     .map((material, index) => ({ material, index }))
     .filter(({ material }) => String(material.name || "").trim());
 
-  wideOrderMaterialSelect.innerHTML = materials.length > 0
+  const materialOptions = materials.length > 0
     ? materials
       .map(({ material, index }) => `<option value="${index}">${material.name} - ${formatPreciseCurrency(material.price)} / м²</option>`)
       .join("")
     : '<option value="">Нет материалов</option>';
+  wideOrderMaterialSelect.innerHTML = `${materialOptions}<option value="${CUSTOM_WIDE_MATERIAL_VALUE}">Кастомный материал</option>`;
   wideOrderMaterialSelect.insertAdjacentHTML("afterbegin", '<option value="">Выберите материал</option>');
-  wideOrderMaterialSelect.value = materials.some(({ index }) => String(index) === currentMaterial) ? currentMaterial : "";
+  wideOrderMaterialSelect.value = materials.some(({ index }) => String(index) === currentMaterial) || currentMaterial === CUSTOM_WIDE_MATERIAL_VALUE
+    ? currentMaterial
+    : "";
+  updateWideCustomMaterialField();
 
   wideOrderExtraWorks.innerHTML = settings.widePrint.rollExtraWorks
     .map((work, index) => ` 
@@ -2138,6 +2148,16 @@ function getWideClientType() {
   return "";
 }
 
+function isWideCustomMaterialSelected() {
+  return wideOrderMaterialSelect.value === CUSTOM_WIDE_MATERIAL_VALUE;
+}
+
+function updateWideCustomMaterialField() {
+  const isCustom = isWideCustomMaterialSelected();
+  wideCustomMaterialPriceWrap.classList.toggle("is-hidden", !isCustom);
+  wideCustomMaterialPriceInput.disabled = !isCustom;
+}
+
 function createWideSizeRow() {
   return `
     <tr data-wide-size-row>
@@ -2188,6 +2208,13 @@ function validateWideOrder() {
 
   if (!wideOrderMaterialSelect.value) {
     markWideInvalid(wideOrderMaterialSelect, "Не выбран материал", errors);
+  }
+
+  if (isWideCustomMaterialSelected()) {
+    const customMaterialPrice = Number(wideCustomMaterialPriceInput.value);
+    if (!customMaterialPrice || customMaterialPrice <= 0) {
+      markWideInvalid(wideCustomMaterialPriceInput, "Укажите стоимость кастомного материала за м²", errors);
+    }
   }
 
   if (sizeRows.length === 0) {
@@ -2278,7 +2305,9 @@ function calculateWideOrder() {
   }
 
   const material = settings.widePrint.rollMaterials[Number(wideOrderMaterialSelect.value)] || { price: 0 };
-  const materialPrice = Number(material.price) || 0;
+  const materialPrice = isWideCustomMaterialSelected()
+    ? Number(wideCustomMaterialPriceInput.value) || 0
+    : Number(material.price) || 0;
   const inkPrice = Number(settings.widePrint.rollInk.price) || 0;
   const printCoefficient = widePrintColorSelect.value === "5+0" ? 5 : 4;
   const whiteValue = widePrintColorSelect.value === "5+0" ? 1 : 0;
@@ -2721,13 +2750,20 @@ categorySelect.addEventListener("change", () => {
 
 [
   wideOrderMaterialSelect,
+  wideCustomMaterialPriceInput,
   widePrintColorSelect,
   wideUrgencySelect,
   wideAdjustmentTypeSelect,
   wideAdjustmentInput
 ].forEach((field) => {
   field.addEventListener("input", calculateOrder);
-  field.addEventListener("change", calculateOrder);
+  field.addEventListener("change", () => {
+    if (field === wideOrderMaterialSelect) {
+      updateWideCustomMaterialField();
+    }
+
+    calculateOrder();
+  });
 });
 
 [wideB2BClientMode, wideB2CClientMode].forEach((field) => {
