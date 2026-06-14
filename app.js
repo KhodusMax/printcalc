@@ -163,6 +163,14 @@ const UI_TRANSLATIONS = {
   "Категория": "Category",
   "Название продукта": "Product name",
   "Базовая цена за количество": "Base price for quantity",
+  "Ценовые диапазоны": "Price tiers",
+  "Цена": "Price",
+  "Скидка %": "Discount %",
+  "Значение": "Value",
+  "Тип": "Type",
+  "Диапазоны пока не добавлены.": "No tiers added yet.",
+  "Диапазон добавлен.": "Tier added.",
+  "Диапазон удален.": "Tier deleted.",
   "Клик 4+0": "Click 4+0",
   "Клик 4+4": "Click 4+4",
   "Название операции": "Operation name",
@@ -685,6 +693,26 @@ function normalizeSettings(savedSettings) {
     click40: Number(click.click40 ?? click.price) || 0,
     click44: Number(click.click44) || 0
   }));
+  normalized.digitalPrint.standardProducts = normalized.digitalPrint.standardProducts.map((product) => {
+    const basePrice = Number(product.basePrice) || 0;
+    const quantity = Number(product.quantity) || 1;
+    const sourceTiers = Array.isArray(product.priceTiers) && product.priceTiers.length > 0
+      ? product.priceTiers
+      : [{ from: 1, to: quantity, type: "price", value: basePrice }];
+
+    return {
+      category: product.category || DIGITAL_CATEGORY,
+      name: product.name || "Untitled",
+      basePrice,
+      quantity,
+      priceTiers: sourceTiers.map((tier) => ({
+        from: Number(tier.from) || 1,
+        to: Number(tier.to) || 1,
+        type: tier.type === "discount" ? "discount" : "price",
+        value: Number(tier.value) || 0
+      }))
+    };
+  });
   normalized.digitalPrint.materials = normalized.digitalPrint.materials.map((material) => ({
     type: MATERIAL_TYPES.includes(material.type) ? material.type : MATERIAL_TYPES[0],
     name: material.name === "Untitled" && !Number(material.sr3Price) ? "" : material.name ?? "",
@@ -1762,6 +1790,65 @@ function validateUsers() {
   return true;
 }
 
+function createDigitalStandardTier(product) {
+  const tiers = Array.isArray(product.priceTiers) ? product.priceTiers : [];
+  const previousTier = tiers[tiers.length - 1];
+  const from = previousTier ? Number(previousTier.to) + 1 : 1;
+
+  return {
+    from: Number.isFinite(from) && from > 0 ? from : 1,
+    to: Number.isFinite(from) && from > 0 ? from : 1,
+    type: "price",
+    value: 0
+  };
+}
+
+function renderDigitalStandardPriceTiers(product, productIndex) {
+  const tiers = Array.isArray(product.priceTiers) ? product.priceTiers : [];
+  const tierRows = tiers.length > 0
+    ? tiers.map((tier, tierIndex) => `
+      <tr>
+        <td><input type="number" min="1" step="1" data-digital-standard-tier data-product-index="${productIndex}" data-tier-index="${tierIndex}" data-field="from" value="${tier.from}"></td>
+        <td><input type="number" min="1" step="1" data-digital-standard-tier data-product-index="${productIndex}" data-tier-index="${tierIndex}" data-field="to" value="${tier.to}"></td>
+        <td>
+          <select data-digital-standard-tier data-product-index="${productIndex}" data-tier-index="${tierIndex}" data-field="type">
+            <option value="price"${tier.type === "price" ? " selected" : ""}>Цена</option>
+            <option value="discount"${tier.type === "discount" ? " selected" : ""}>Скидка %</option>
+          </select>
+        </td>
+        <td><input type="number" min="0" step="0.01" data-digital-standard-tier data-product-index="${productIndex}" data-tier-index="${tierIndex}" data-field="value" value="${tier.value}"></td>
+        <td class="row-action-cell">
+          <button type="button" class="delete-row-action" data-delete-digital-standard-tier data-product-index="${productIndex}" data-tier-index="${tierIndex}" aria-label="Удалить диапазон" title="Удалить диапазон">🗑</button>
+        </td>
+      </tr>
+    `).join("")
+    : '<tr><td colspan="5">Диапазоны пока не добавлены.</td></tr>';
+
+  return `
+    <tr class="nested-data-row">
+      <td></td>
+      <td colspan="5">
+        <div class="nested-table-heading">
+          <strong>Ценовые диапазоны</strong>
+          <button type="button" class="add-action small-add-action" data-add-digital-standard-tier data-product-index="${productIndex}">+</button>
+        </div>
+        <table class="compact-table nested-table">
+          <thead>
+            <tr>
+              <th>Количество от</th>
+              <th>Количество до</th>
+              <th>Тип</th>
+              <th>Значение</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>${tierRows}</tbody>
+        </table>
+      </td>
+    </tr>
+  `;
+}
+
 function renderDigitalTables() {
   document.querySelector("#digitalStandardProductsTable").innerHTML = settings.digitalPrint.standardProducts
     .map((product, index) => ({ product, index }))
@@ -1775,6 +1862,7 @@ function renderDigitalTables() {
       <td><input type="number" min="1" step="1" data-digital-list="standardProducts" data-index="${index}" data-field="quantity" value="${product.quantity}"></td>
       <td class="row-action-cell">${deleteButton("standardProducts", index)}</td>
     </tr>
+    ${renderDigitalStandardPriceTiers(product, index)}
   `).join("");
 
   document.querySelector("#digitalClickPricesTable").innerHTML = settings.digitalPrint.clickPrices.map((click, index) => `
@@ -1861,7 +1949,7 @@ function renderDigitalTables() {
 
 function createDigitalRow(list) {
   const rows = {
-    standardProducts: { category: DIGITAL_CATEGORY, name: "Untitled", basePrice: 0, quantity: 1 },
+    standardProducts: { category: DIGITAL_CATEGORY, name: "Untitled", basePrice: 0, quantity: 1, priceTiers: [{ from: 1, to: 1, type: "price", value: 0 }] },
     materials: { type: MATERIAL_TYPES[0], name: "", sr3Price: "" },
     extraWorks: { name: "Untitled", percent: 0 },
     quantityFormulas: { from: 1, to: 1, formula: "" },
@@ -2932,6 +3020,20 @@ document.addEventListener("input", (event) => {
     return;
   }
 
+  if (input.matches("[data-digital-standard-tier]")) {
+    const productIndex = Number(input.dataset.productIndex);
+    const tierIndex = Number(input.dataset.tierIndex);
+    const field = input.dataset.field;
+    const tier = settings.digitalPrint.standardProducts[productIndex]?.priceTiers?.[tierIndex];
+    if (!tier) {
+      return;
+    }
+
+    tier[field] = input.type === "number" ? Number(input.value) || 0 : input.value;
+    saveSettings();
+    return;
+  }
+
   if (input.matches("[data-digital-list]")) {
     const list = input.dataset.digitalList;
     const index = Number(input.dataset.index);
@@ -2972,6 +3074,18 @@ document.addEventListener("input", (event) => {
 
 document.addEventListener("change", (event) => {
   const input = event.target;
+  if (input.matches("[data-digital-standard-tier]")) {
+    const productIndex = Number(input.dataset.productIndex);
+    const tierIndex = Number(input.dataset.tierIndex);
+    const field = input.dataset.field;
+    const tier = settings.digitalPrint.standardProducts[productIndex]?.priceTiers?.[tierIndex];
+    if (tier) {
+      tier[field] = input.type === "number" ? Number(input.value) || 0 : input.value;
+      saveSettings();
+    }
+    return;
+  }
+
   if (!input.matches("[data-user-field]")) {
     return;
   }
@@ -3374,6 +3488,34 @@ document.addEventListener("click", (event) => {
     saveSettings();
     renderUsersTable();
     showUsersStatus("Сохранено");
+    return;
+  }
+
+  const addDigitalStandardTierButton = event.target.closest("[data-add-digital-standard-tier]");
+  if (addDigitalStandardTierButton) {
+    const productIndex = Number(addDigitalStandardTierButton.dataset.productIndex);
+    const product = settings.digitalPrint.standardProducts[productIndex];
+    if (product) {
+      product.priceTiers = Array.isArray(product.priceTiers) ? product.priceTiers : [];
+      product.priceTiers.push(createDigitalStandardTier(product));
+      saveSettings();
+      renderDigitalTables();
+      showSectionMessage("standard", "Диапазон добавлен.");
+    }
+    return;
+  }
+
+  const deleteDigitalStandardTierButton = event.target.closest("[data-delete-digital-standard-tier]");
+  if (deleteDigitalStandardTierButton) {
+    const productIndex = Number(deleteDigitalStandardTierButton.dataset.productIndex);
+    const tierIndex = Number(deleteDigitalStandardTierButton.dataset.tierIndex);
+    const tiers = settings.digitalPrint.standardProducts[productIndex]?.priceTiers;
+    if (Array.isArray(tiers)) {
+      tiers.splice(tierIndex, 1);
+      saveSettings();
+      renderDigitalTables();
+      showSectionMessage("standard", "Диапазон удален.");
+    }
     return;
   }
 

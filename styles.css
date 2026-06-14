@@ -655,6 +655,28 @@ table {
   width: 48px;
 }
 
+.nested-data-row > td {
+  background: #f8fafc;
+}
+
+.nested-table-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.nested-table {
+  background: #fff;
+}
+
+.small-add-action {
+  width: 32px;
+  min-width: 32px;
+  height: 32px;
+}
+
 th,
 td {
   padding: 12px;

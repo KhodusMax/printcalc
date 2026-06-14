@@ -136,7 +136,14 @@
     }
   ],
   "digitalPrint": {
-    "standardProducts": [],
+    "standardProducts": [
+      {
+        "category": "Цифровая печать",
+        "name": "Untitled",
+        "basePrice": 0,
+        "quantity": 1
+      }
+    ],
     "clickPrices": [
       {
         "click40": 0.065,
@@ -252,6 +259,10 @@
       {
         "name": "Strip of double-sided tape",
         "percent": 30
+      },
+      {
+        "name": "Kiss-cut",
+        "percent": 35
       }
     ],
     "quantityFormulas": [
