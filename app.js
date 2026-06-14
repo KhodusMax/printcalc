@@ -253,6 +253,203 @@ const UI_TRANSLATIONS = {
   "за единицу": "per unit"
 };
 
+const UI_TRANSLATIONS_ET = {
+  "Внутренний калькулятор стоимости продукции": "Sisemine toodete hinnakalkulaator",
+  "Логин": "Kasutajanimi",
+  "Пароль": "Parool",
+  "Войти": "Logi sisse",
+  "Администратор": "Administraator",
+  "Выйти": "Logi välja",
+  "Расчет цены": "Hinna arvutus",
+  "Формулы и коэффициенты": "Valemid ja koefitsiendid",
+  "Пользователи": "Kasutajad",
+  "Выбор языка": "Keele valik",
+  "Рабочий расчет": "Tööarvutus",
+  "База расчетов": "Arvutuste baas",
+  "Администрирование доступа": "Ligipääsu haldus",
+  "Категории расчета": "Arvutuse kategooriad",
+  "Категории коэффициентов": "Koefitsientide kategooriad",
+  "Цифровая печать": "Digitrükk",
+  "Широкоформатная печать": "Suureformaadiline trükk",
+  "Печать на одежде": "Rõivaste trükk",
+  "Тип клиента": "Kliendi tüüp",
+  "B2B клиент": "B2B klient",
+  "B2C клиент": "B2C klient",
+  "Просчёт стоимости": "Hinna arvutus",
+  "Просчет стоимости": "Hinna arvutus",
+  "Стандартная продукция": "Standardtooted",
+  "Выбор продукта": "Toote valik",
+  "Выберите продукт": "Vali toode",
+  "Нет стандартных продуктов": "Standardtooteid ei ole",
+  "Введите количество": "Sisesta kogus",
+  "Не выбран продукт": "Toode on valimata",
+  "Не указано количество": "Kogus on sisestamata",
+  "Скидка / наценка": "Soodustus / juurdehindlus",
+  "Материал": "Materjal",
+  "Материалы": "Materjalid",
+  "Выбор материала": "Materjali valik",
+  "Тип материала": "Materjali tüüp",
+  "Выберите тип материала": "Vali materjali tüüp",
+  "Выберите материал": "Vali materjal",
+  "Нет материалов": "Materjale ei ole",
+  "Нет материалов этого типа": "Seda tüüpi materjale ei ole",
+  "Кастомный материал": "Kohandatud materjal",
+  "Стоимость кастомного материала за м²": "Kohandatud materjali hind m² kohta",
+  "Укажите стоимость кастомного материала за м²": "Sisesta kohandatud materjali hind m² kohta",
+  "Материал без покрытия": "Katmata materjal",
+  "Материал силк": "Silk-materjal",
+  "Специальный материал": "Erimaterjal",
+  "Размер": "Suurus",
+  "Добавьте все размеры заказа. Площадь строк будет суммироваться.": "Lisa kõik tellimuse mõõdud. Ridade pindalad liidetakse.",
+  "Ширина, мм": "Laius, mm",
+  "Высота, мм": "Kõrgus, mm",
+  "Введите ширину": "Sisesta laius",
+  "Введите высоту": "Sisesta kõrgus",
+  "Введите тираж": "Sisesta tiraaž",
+  "Тираж": "Tiraaž",
+  "Количество": "Kogus",
+  "Тип печати": "Trüki tüüp",
+  "Односторонняя печать": "Ühepoolne trükk",
+  "Двусторонняя печать": "Kahepoolne trükk",
+  "Выбор печати": "Trüki valik",
+  "Выберите печать": "Vali trükk",
+  "Выбор типа печати": "Trüki tüübi valik",
+  "Выберите тип печати": "Vali trüki tüüp",
+  "Печать": "Trükk",
+  "Ввод тиража": "Tiraaži sisestamine",
+  "Двухсторонняя печать": "Kahepoolne trükk",
+  "Дополнительные работы": "Lisatööd",
+  "Срочность": "Kiirus",
+  "Выбор срочности": "Kiiruse valik",
+  "Выберите срочность": "Vali kiirus",
+  "Стандартная срочность, 3-5 рабочих дней": "Tavaline tähtaeg, 3-5 tööpäeva",
+  "Срочная работа, +50%": "Kiirtöö, +50%",
+  "Дополнительная скидка или надбавка": "Täiendav soodustus või juurdehindlus",
+  "Тип корректировки": "Korrigeerimise tüüp",
+  "Скидка": "Soodustus",
+  "Надбавка": "Juurdehindlus",
+  "Процент, %": "Protsent, %",
+  "Тип широкоформатной печати": "Suureformaadilise trüki tüüp",
+  "Рулонная печать": "Rulltrükk",
+  "Листовая печать": "Lehttrükk",
+  "Цветность печати": "Trüki värvilisus",
+  "Тип носителя": "Kandja tüüp",
+  "Выбор носителя": "Kandja valik",
+  "Выберите носитель": "Vali kandja",
+  "Нестандартный носитель / одежда клиента": "Eritüüpi kandja / kliendi rõivas",
+  "Стоимость за единицу": "Ühiku hind",
+  "Нет носителей": "Kandjaid ei ole",
+  "Продукт": "Toode",
+  "Площадь, м²": "Pindala, m²",
+  "Площадь / размер в м²": "Pindala / suurus m²",
+  "Материал / носитель": "Materjal / kandja",
+  "Постобработка": "Järeltöötlus",
+  "Срок": "Tähtaeg",
+  "Итог": "Kokku",
+  "Себестоимость": "Omahind",
+  "Наценка": "Juurdehindlus",
+  "Доп. работы": "Lisatööd",
+  "Цена за единицу": "Ühiku hind",
+  "Цена за изделие": "Toote hind",
+  "Минимальный заказ": "Miinimumtellimus",
+  "Стоимость минимального заказа": "Miinimumtellimuse hind",
+  "Минимальная стоимость заказа": "Miinimumtellimuse hind",
+  "Площадь печати": "Trükipind",
+  "Стандартные продукты": "Standardtooted",
+  "Формулы количества": "Koguse valemid",
+  "Формулы": "Valemid",
+  "Цена за клик": "Kliki hind",
+  "Цена за материал": "Materjali hind",
+  "Цена краски за м²": "Tindi hind m² kohta",
+  "Коэффициент за резку": "Lõikuse koefitsient",
+  "Название материала": "Materjali nimi",
+  "Стоимость листа SRA3": "SRA3 lehe hind",
+  "Стоимость за м²": "Hind m² kohta",
+  "Стоимость краски за м²": "Tindi hind m² kohta",
+  "Категория": "Kategooria",
+  "Название продукта": "Toote nimi",
+  "Базовая цена за количество": "Baashind koguse kohta",
+  "Ценовые диапазоны": "Hinnavahemikud",
+  "Скидка %": "Soodustus %",
+  "Цена за единицу / скидка %": "Ühiku hind / soodustus %",
+  "Скидка в процентах": "Soodustus protsentides",
+  "Тип": "Tüüp",
+  "Диапазоны пока не добавлены.": "Vahemikke pole veel lisatud.",
+  "Диапазон добавлен.": "Vahemik lisatud.",
+  "Диапазон удален.": "Vahemik kustutatud.",
+  "Клик 4+0": "Kliki hind 4+0",
+  "Клик 4+4": "Kliki hind 4+4",
+  "Название операции": "Operatsiooni nimi",
+  "Процент к стоимости": "Protsent hinnast",
+  "Количество от": "Kogus alates",
+  "Количество до": "Kogus kuni",
+  "м² от": "m² alates",
+  "м² до": "m² kuni",
+  "Формула": "Valem",
+  "Формула цены за лист": "Lehe hinna valem",
+  "Процент за резку": "Lõikuse protsent",
+  "Дополнительный процент": "Lisaprotsent",
+  "Продукты направления": "Valdkonna tooted",
+  "Продукты, базовые ставки, наценка и минимум для выбранной подкладки.": "Valitud jaotise tooted, baashinnad, juurdehindlus ja miinimum.",
+  "Раздел пока не наполнен": "Jaotis pole veel täidetud",
+  "Раздел подготовлен. Наполним его позже.": "Jaotis on ette valmistatud. Täidame selle hiljem.",
+  "База": "Baas",
+  "Мин. заказ": "Min. tellimus",
+  "Стоимость": "Hind",
+  "Ед.": "Ühik",
+  "Дополнительные операции": "Lisatoimingud",
+  "Операция": "Toiming",
+  "Имя": "Eesnimi",
+  "Фамилия": "Perekonnanimi",
+  "Роль": "Roll",
+  "Главный пользователь": "Peakasutaja",
+  "Продавец": "Müüja",
+  "Пользователь": "Kasutaja",
+  "Сохранить": "Salvesta",
+  "Отменить удаление": "Tühista kustutamine",
+  "Сохранено": "Salvestatud",
+  "Удаление отменено.": "Kustutamine tühistatud.",
+  "Удалить строку": "Kustuta rida",
+  "Удалить размер": "Kustuta mõõt",
+  "Перетащить строку": "Lohista rida",
+  "Удалить пользователя": "Kustuta kasutaja",
+  "Перетащить пользователя": "Lohista kasutajat",
+  "Неверный логин или пароль.": "Vale kasutajanimi või parool.",
+  "Цена заказа равна или ниже себестоимости.": "Tellimuse hind on omahinnaga võrdne või sellest madalam.",
+  "Фактическая стоимость печати ниже минимальной. Применяется минимальная стоимость печати.": "Tegelik trükihind on miinimumist madalam. Rakendatakse miinimumtrükihinda.",
+  "Не выбран тип клиента": "Kliendi tüüp on valimata",
+  "Не выбран тип материала": "Materjali tüüp on valimata",
+  "Не выбран материал": "Materjal on valimata",
+  "Не указана ширина": "Laius on sisestamata",
+  "Не указана высота": "Kõrgus on sisestamata",
+  "Не указан тираж": "Tiraaž on sisestamata",
+  "Добавьте хотя бы один размер": "Lisa vähemalt üks mõõt",
+  "Площадь заказа должна быть больше 0": "Tellimuse pindala peab olema suurem kui 0",
+  "Не выбран тип печати": "Trüki tüüp on valimata",
+  "Не выбрана срочность": "Kiirus on valimata",
+  "Процент корректировки должен быть не меньше 0": "Korrigeerimise protsent ei tohi olla alla 0",
+  "Скидка не может быть больше 100%": "Soodustus ei saa olla üle 100%",
+  "Выберите рулонную печать": "Vali rulltrükk",
+  "Не выбран тип носителя": "Kandja tüüp on valimata",
+  "Стоимость носителя должна быть не меньше 0": "Kandja hind ei tohi olla alla 0",
+  "Нельзя сохранить список без пользователей.": "Kasutajate nimekirja ei saa tühjana salvestada.",
+  "Новый пользователь добавлен. Заполните данные и нажмите «Сохранить».": "Uus kasutaja lisatud. Täida andmed ja vajuta Salvesta.",
+  "Пользователь отмечен на удаление. Нажмите «Сохранить».": "Kasutaja on kustutamiseks märgitud. Vajuta Salvesta.",
+  "Строка отмечена на удаление. Нажмите «Сохранить».": "Rida on kustutamiseks märgitud. Vajuta Salvesta.",
+  "Удаление не сохранено. Нажмите «Сохранить», чтобы удалить строку.": "Kustutamine pole salvestatud. Rea kustutamiseks vajuta Salvesta.",
+  "Удаление не сохранено. Нажмите «Сохранить», чтобы удалить пользователя.": "Kustutamine pole salvestatud. Kasutaja kustutamiseks vajuta Salvesta.",
+  "Сначала сохраните или отмените удаление строки.": "Esmalt salvesta või tühista rea kustutamine.",
+  "Сначала сохраните или отмените удаление пользователя.": "Esmalt salvesta või tühista kasutaja kustutamine.",
+  "Порядок изменен. Нажмите «Сохранить».": "Järjekord muudetud. Vajuta Salvesta.",
+  "Доступ к системе": "Ligipääs süsteemile",
+  "Обычный срок": "Tavaline tähtaeg",
+  "Срочно +25%": "Kiire +25%",
+  "Сегодня +50%": "Täna +50%",
+  "лист": "leht",
+  "за заказ": "tellimuse kohta",
+  "за единицу": "ühiku kohta"
+};
+
 const defaults = {
   users: [
     { firstName: "Максим", lastName: "Ходус", role: "admin", login: ADMIN_LOGIN, password: ADMIN_PASSWORD }
@@ -352,7 +549,10 @@ const defaults = {
 };
 
 let settings = structuredClone(defaults);
-let currentLanguage = localStorage.getItem(LANGUAGE_STORAGE_KEY) === "en" ? "en" : "ru";
+const SUPPORTED_LANGUAGES = ["ru", "en", "et"];
+let currentLanguage = SUPPORTED_LANGUAGES.includes(localStorage.getItem(LANGUAGE_STORAGE_KEY))
+  ? localStorage.getItem(LANGUAGE_STORAGE_KEY)
+  : "ru";
 let activeDepartment = DEPARTMENTS[0].label;
 let activeDigitalSettingsTab = DIGITAL_SETTINGS_TABS[0].id;
 let activeWideSettingsTab = WIDE_ROLL_SETTINGS_TABS[0].id;
@@ -470,11 +670,42 @@ const saveUsersButton = document.querySelector("#saveUsersButton");
 const undoUserDeleteButton = document.querySelector("#undoUserDeleteButton");
 const usersSaveStatus = document.querySelector("#usersSaveStatus");
 
-const UI_TRANSLATIONS_REVERSE = Object.fromEntries(
-  Object.entries(UI_TRANSLATIONS).map(([ru, en]) => [en, ru])
+const UI_TRANSLATIONS_BY_LANGUAGE = {
+  en: UI_TRANSLATIONS,
+  et: UI_TRANSLATIONS_ET
+};
+function createReverseTranslationDictionary(dictionary) {
+  return Object.entries(dictionary).reduce((result, [ru, translated]) => {
+    if (!result[translated]) {
+      result[translated] = ru;
+    }
+
+    return result;
+  }, {});
+}
+
+const UI_TRANSLATIONS_REVERSE_BY_LANGUAGE = Object.fromEntries(
+  Object.entries(UI_TRANSLATIONS_BY_LANGUAGE).map(([language, dictionary]) => [
+    language,
+    createReverseTranslationDictionary(dictionary)
+  ])
 );
 let isApplyingLanguage = false;
 let languageApplyTimer = null;
+
+function getCanonicalText(text) {
+  if (UI_TRANSLATIONS[text] || UI_TRANSLATIONS_ET[text]) {
+    return text;
+  }
+
+  for (const reverseDictionary of Object.values(UI_TRANSLATIONS_REVERSE_BY_LANGUAGE)) {
+    if (reverseDictionary[text]) {
+      return reverseDictionary[text];
+    }
+  }
+
+  return text;
+}
 
 function translateStaticText(text, language) {
   const trimmed = text.trim();
@@ -482,8 +713,16 @@ function translateStaticText(text, language) {
     return text;
   }
 
-  const dictionary = language === "en" ? UI_TRANSLATIONS : UI_TRANSLATIONS_REVERSE;
-  const translated = dictionary[trimmed];
+  const canonicalText = getCanonicalText(trimmed);
+  if (language === "ru") {
+    if (canonicalText === trimmed) {
+      return translateDynamicText(text, language);
+    }
+
+    return text.replace(trimmed, canonicalText);
+  }
+
+  const translated = UI_TRANSLATIONS_BY_LANGUAGE[language]?.[canonicalText];
   if (!translated) {
     return translateDynamicText(text, language);
   }
@@ -522,28 +761,95 @@ function translateDynamicText(text, language) {
     if (match) return wrap(`${match[1]} m²`);
     match = trimmed.match(/^(.+) \/ шт$/);
     if (match) return wrap(`${match[1]} / pc`);
+  } else if (language === "et") {
+    if (trimmed.includes(" / м²") || trimmed.includes(" / лист") || trimmed.includes(" / за заказ") || trimmed.includes(" / за единицу") || trimmed.includes(" / sheet") || trimmed.includes(" / per order") || trimmed.includes(" / per unit")) {
+      return wrap(trimmed
+        .replaceAll(" / м²", " / m²")
+        .replaceAll(" / лист", " / leht")
+        .replaceAll(" / за заказ", " / tellimuse kohta")
+        .replaceAll(" / за единицу", " / ühiku kohta")
+        .replaceAll(" / sheet", " / leht")
+        .replaceAll(" / per order", " / tellimuse kohta")
+        .replaceAll(" / per unit", " / ühiku kohta"));
+    }
+
+    let match = trimmed.match(/^Нет формулы для (.+) м²$/);
+    if (match) return wrap(`Valem puudub ${match[1]} m² jaoks`);
+    match = trimmed.match(/^No formula for (.+) m²$/);
+    if (match) return wrap(`Valem puudub ${match[1]} m² jaoks`);
+    match = trimmed.match(/^Не указана ширина в строке (.+)$/);
+    if (match) return wrap(`Laius on sisestamata real ${match[1]}`);
+    match = trimmed.match(/^Width is not specified in row (.+)$/);
+    if (match) return wrap(`Laius on sisestamata real ${match[1]}`);
+    match = trimmed.match(/^Не указана высота в строке (.+)$/);
+    if (match) return wrap(`Kõrgus on sisestamata real ${match[1]}`);
+    match = trimmed.match(/^Height is not specified in row (.+)$/);
+    if (match) return wrap(`Kõrgus on sisestamata real ${match[1]}`);
+    match = trimmed.match(/^Не указан тираж в строке (.+)$/);
+    if (match) return wrap(`Tiraaž on sisestamata real ${match[1]}`);
+    match = trimmed.match(/^Quantity is not specified in row (.+)$/);
+    if (match) return wrap(`Tiraaž on sisestamata real ${match[1]}`);
+    match = trimmed.match(/^Нет формулы для (.+) листов SRA3$/);
+    if (match) return wrap(`Valem puudub ${match[1]} SRA3 lehe jaoks`);
+    match = trimmed.match(/^No formula for (.+) SRA3 sheets$/);
+    if (match) return wrap(`Valem puudub ${match[1]} SRA3 lehe jaoks`);
+    match = trimmed.match(/^Нет диапазона цены для количества (.+)$/);
+    if (match) return wrap(`Hinnavahemik puudub kogusele ${match[1]}`);
+    match = trimmed.match(/^No price tier for quantity (.+)$/);
+    if (match) return wrap(`Hinnavahemik puudub kogusele ${match[1]}`);
+    match = trimmed.match(/^(.+) лист\. \/ (.+) шт\. на лист$/);
+    if (match) return wrap(`${match[1]} lehte / ${match[2]} tk lehel`);
+    match = trimmed.match(/^(.+) sheets \/ (.+) pcs per sheet$/);
+    if (match) return wrap(`${match[1]} lehte / ${match[2]} tk lehel`);
+    match = trimmed.match(/^(.+) шт\.$/);
+    if (match) return wrap(`${match[1]} tk`);
+    match = trimmed.match(/^(.+) pcs$/);
+    if (match) return wrap(`${match[1]} tk`);
+    match = trimmed.match(/^(.+) м²$/);
+    if (match) return wrap(`${match[1]} m²`);
+    match = trimmed.match(/^(.+) \/ шт$/);
+    if (match) return wrap(`${match[1]} / tk`);
   } else {
-    if (trimmed.includes(" / m²") || trimmed.includes(" / sheet") || trimmed.includes(" / per order") || trimmed.includes(" / per unit")) {
+    if (trimmed.includes(" / m²") || trimmed.includes(" / sheet") || trimmed.includes(" / per order") || trimmed.includes(" / per unit") || trimmed.includes(" / leht") || trimmed.includes(" / tellimuse kohta") || trimmed.includes(" / ühiku kohta")) {
       return wrap(trimmed
         .replaceAll(" / m²", " / м²")
         .replaceAll(" / sheet", " / лист")
         .replaceAll(" / per order", " / за заказ")
-        .replaceAll(" / per unit", " / за единицу"));
+        .replaceAll(" / per unit", " / за единицу")
+        .replaceAll(" / leht", " / лист")
+        .replaceAll(" / tellimuse kohta", " / за заказ")
+        .replaceAll(" / ühiku kohta", " / за единицу"));
     }
 
     let match = trimmed.match(/^No formula for (.+) m²$/);
     if (match) return wrap(`Нет формулы для ${match[1]} м²`);
+    match = trimmed.match(/^Valem puudub (.+) m² jaoks$/);
+    if (match) return wrap(`Нет формулы для ${match[1]} м²`);
     match = trimmed.match(/^Width is not specified in row (.+)$/);
+    if (match) return wrap(`Не указана ширина в строке ${match[1]}`);
+    match = trimmed.match(/^Laius on sisestamata real (.+)$/);
     if (match) return wrap(`Не указана ширина в строке ${match[1]}`);
     match = trimmed.match(/^Height is not specified in row (.+)$/);
     if (match) return wrap(`Не указана высота в строке ${match[1]}`);
+    match = trimmed.match(/^Kõrgus on sisestamata real (.+)$/);
+    if (match) return wrap(`Не указана высота в строке ${match[1]}`);
     match = trimmed.match(/^Quantity is not specified in row (.+)$/);
+    if (match) return wrap(`Не указан тираж в строке ${match[1]}`);
+    match = trimmed.match(/^Tiraaž on sisestamata real (.+)$/);
     if (match) return wrap(`Не указан тираж в строке ${match[1]}`);
     match = trimmed.match(/^No formula for (.+) SRA3 sheets$/);
     if (match) return wrap(`Нет формулы для ${match[1]} листов SRA3`);
+    match = trimmed.match(/^Valem puudub (.+) SRA3 lehe jaoks$/);
+    if (match) return wrap(`Нет формулы для ${match[1]} листов SRA3`);
+    match = trimmed.match(/^Hinnavahemik puudub kogusele (.+)$/);
+    if (match) return wrap(`Нет диапазона цены для количества ${match[1]}`);
     match = trimmed.match(/^(.+) sheets \/ (.+) pcs per sheet$/);
     if (match) return wrap(`${match[1]} лист. / ${match[2]} шт. на лист`);
+    match = trimmed.match(/^(.+) lehte \/ (.+) tk lehel$/);
+    if (match) return wrap(`${match[1]} лист. / ${match[2]} шт. на лист`);
     match = trimmed.match(/^(.+) pcs$/);
+    if (match) return wrap(`${match[1]} шт.`);
+    match = trimmed.match(/^(.+) tk$/);
     if (match) return wrap(`${match[1]} шт.`);
     match = trimmed.match(/^(.+) m²$/);
     if (match) return wrap(`${match[1]} м²`);
@@ -607,7 +913,7 @@ function applyLanguage() {
 }
 
 function scheduleLanguageApply() {
-  if (currentLanguage !== "en") {
+  if (currentLanguage === "ru") {
     return;
   }
 
@@ -616,7 +922,7 @@ function scheduleLanguageApply() {
 }
 
 function setLanguage(language) {
-  currentLanguage = language === "en" ? "en" : "ru";
+  currentLanguage = SUPPORTED_LANGUAGES.includes(language) ? language : "ru";
   localStorage.setItem(LANGUAGE_STORAGE_KEY, currentLanguage);
   renderAll();
   applyLanguage();
