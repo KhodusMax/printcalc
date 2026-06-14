@@ -79,6 +79,13 @@ const UI_TRANSLATIONS = {
   "Просчёт стоимости": "Cost calculation",
   "Просчет стоимости": "Cost calculation",
   "Стандартная продукция": "Standard products",
+  "Выбор продукта": "Product selection",
+  "Выберите продукт": "Select product",
+  "Нет стандартных продуктов": "No standard products",
+  "Введите количество": "Enter quantity",
+  "Не выбран продукт": "Product is not selected",
+  "Не указано количество": "Quantity is not specified",
+  "Скидка / наценка": "Discount / markup",
   "Материал": "Material",
   "Материалы": "Materials",
   "Выбор материала": "Material selection",
@@ -396,9 +403,12 @@ const wideOrderForm = document.querySelector("#wideOrderForm");
 const digitalCostMode = document.querySelector("#digitalCostMode");
 const digitalStandardMode = document.querySelector("#digitalStandardMode");
 const digitalCostFields = document.querySelector("#digitalCostFields");
+const digitalStandardFields = document.querySelector("#digitalStandardFields");
 const digitalClientTypeOptions = document.querySelector("#digitalClientTypeOptions");
 const digitalB2BClientMode = document.querySelector("#digitalB2BClientMode");
 const digitalB2CClientMode = document.querySelector("#digitalB2CClientMode");
+const digitalStandardProductSelect = document.querySelector("#digitalStandardProductSelect");
+const digitalStandardQuantityInput = document.querySelector("#digitalStandardQuantityInput");
 const digitalOrderMaterialTypeSelect = document.querySelector("#digitalOrderMaterialTypeSelect");
 const digitalOrderMaterialSelect = document.querySelector("#digitalOrderMaterialSelect");
 const digitalOrderExtraWorks = document.querySelector("#digitalOrderExtraWorks");
@@ -1026,6 +1036,21 @@ function renderSelectors() {
 }
 
 function renderDigitalOrderSelectors() {
+  const currentStandardProduct = digitalStandardProductSelect.value;
+  const standardProducts = settings.digitalPrint.standardProducts
+    .map((product, index) => ({ product, index }))
+    .filter(({ product }) => String(product.name || "").trim());
+
+  digitalStandardProductSelect.innerHTML = standardProducts.length > 0
+    ? standardProducts
+      .map(({ product, index }) => `<option value="${index}">${product.name}</option>`)
+      .join("")
+    : '<option value="">Нет стандартных продуктов</option>';
+  digitalStandardProductSelect.insertAdjacentHTML("afterbegin", '<option value="">Выберите продукт</option>');
+  digitalStandardProductSelect.value = standardProducts.some(({ index }) => String(index) === currentStandardProduct)
+    ? currentStandardProduct
+    : "";
+
   const currentType = digitalOrderMaterialTypeSelect.value;
 
   digitalOrderMaterialTypeSelect.innerHTML = MATERIAL_TYPES
@@ -1127,6 +1152,7 @@ function renderOrderLayout() {
   wideRollOrderFields.classList.toggle("is-hidden", isWide && !wideRollPrintMode.checked);
   genericOrderForm.classList.toggle("is-hidden", isDigital || isWide || isClothes);
   digitalCostFields.classList.toggle("is-hidden", isDigital && !digitalCostMode.checked);
+  digitalStandardFields.classList.toggle("is-hidden", isDigital && !digitalStandardMode.checked);
   clothesCostFields.classList.toggle("is-hidden", isClothes && !clothesCostMode.checked);
 }
 
@@ -2499,6 +2525,92 @@ function validateClothesOrder() {
   return errors.length === 0;
 }
 
+function getDigitalStandardProduct() {
+  const index = digitalStandardProductSelect.value === "" ? -1 : Number(digitalStandardProductSelect.value);
+  return settings.digitalPrint.standardProducts[index] || null;
+}
+
+function getDigitalStandardTier(product, quantity) {
+  const tiers = Array.isArray(product?.priceTiers) ? product.priceTiers : [];
+  return tiers.find((tier) => quantity >= Number(tier.from) && quantity <= Number(tier.to));
+}
+
+function validateDigitalStandardOrder() {
+  clearOrderValidation();
+  const errors = [];
+  const quantity = Number(digitalStandardQuantityInput.value);
+
+  if (!getDigitalClientType()) {
+    markInvalid(digitalClientTypeOptions, "Не выбран тип клиента", errors);
+  }
+
+  if (!digitalStandardProductSelect.value) {
+    markInvalid(digitalStandardProductSelect, "Не выбран продукт", errors);
+  }
+
+  if (!quantity || quantity <= 0) {
+    markInvalid(digitalStandardQuantityInput, "Не указано количество", errors);
+  }
+
+  if (errors.length > 0) {
+    orderValidationMessage.textContent = errors[0];
+  }
+
+  return errors.length === 0;
+}
+
+function calculateDigitalStandardOrder() {
+  setResultLabels({
+    cost: "Себестоимость",
+    margin: "Скидка / наценка",
+    unit: "Цена за единицу",
+    minimum: "Количество"
+  });
+
+  if (!validateDigitalStandardOrder()) {
+    setResultValues({
+      total: formatCurrency(0),
+      cost: formatCurrency(0),
+      margin: formatCurrency(0),
+      unit: formatCurrency(0),
+      minimum: "0"
+    });
+    return;
+  }
+
+  const product = getDigitalStandardProduct();
+  const quantity = Math.max(Number(digitalStandardQuantityInput.value) || 1, 1);
+  const tier = getDigitalStandardTier(product, quantity);
+  if (!tier) {
+    orderValidationMessage.textContent = `Нет диапазона цены для количества ${quantity}`;
+    setResultValues({
+      total: formatCurrency(0),
+      cost: formatCurrency(0),
+      margin: formatCurrency(0),
+      unit: formatCurrency(0),
+      minimum: `${quantity} шт.`
+    });
+    return;
+  }
+
+  const baseQuantity = Math.max(Number(product.quantity) || 1, 1);
+  const baseUnitPrice = (Number(product.basePrice) || 0) / baseQuantity;
+  const unitPrice = tier.type === "discount"
+    ? baseUnitPrice * (1 - ((Number(tier.value) || 0) / 100))
+    : Number(tier.value) || 0;
+  const total = Math.max(unitPrice, 0) * quantity;
+  const baseTotal = baseUnitPrice * quantity;
+  const adjustment = total - baseTotal;
+
+  setResultValues({
+    total: formatCurrency(total),
+    cost: formatCurrency(0),
+    margin: formatCurrency(adjustment),
+    unit: formatCurrency(total / quantity),
+    minimum: `${quantity} шт.`
+  });
+}
+
 function calculateClothesOrder() {
   setResultLabels({
     cost: "Себестоимость",
@@ -2563,6 +2675,11 @@ function calculateClothesOrder() {
 }
 
 function calculateDigitalOrder() {
+  if (digitalStandardMode.checked) {
+    calculateDigitalStandardOrder();
+    return;
+  }
+
   setResultLabels({
     cost: "Себестоимость",
     margin: "Доп. работы",
@@ -2784,6 +2901,8 @@ categorySelect.addEventListener("change", () => {
 });
 
 [
+  digitalStandardProductSelect,
+  digitalStandardQuantityInput,
   digitalOrderMaterialTypeSelect,
   digitalOrderMaterialSelect,
   digitalWidthInput,

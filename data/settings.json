@@ -144,10 +144,10 @@
         "quantity": 1,
         "priceTiers": [
           {
-            "from": 1,
-            "to": 1,
+            "from": 5,
+            "to": 9,
             "type": "discount",
-            "value": 0
+            "value": 20
           }
         ]
       }
