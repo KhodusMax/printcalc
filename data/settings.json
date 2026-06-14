@@ -141,7 +141,15 @@
         "category": "Цифровая печать",
         "name": "Untitled",
         "basePrice": 0,
-        "quantity": 1
+        "quantity": 1,
+        "priceTiers": [
+          {
+            "from": 1,
+            "to": 1,
+            "type": "discount",
+            "value": 0
+          }
+        ]
       }
     ],
     "clickPrices": [

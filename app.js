@@ -164,9 +164,10 @@ const UI_TRANSLATIONS = {
   "Название продукта": "Product name",
   "Базовая цена за количество": "Base price for quantity",
   "Ценовые диапазоны": "Price tiers",
-  "Цена": "Price",
+  "Цена за единицу": "Unit price",
   "Скидка %": "Discount %",
-  "Значение": "Value",
+  "Цена за единицу / скидка %": "Unit price / discount %",
+  "Скидка в процентах": "Discount percent",
   "Тип": "Type",
   "Диапазоны пока не добавлены.": "No tiers added yet.",
   "Диапазон добавлен.": "Tier added.",
@@ -1812,11 +1813,11 @@ function renderDigitalStandardPriceTiers(product, productIndex) {
         <td><input type="number" min="1" step="1" data-digital-standard-tier data-product-index="${productIndex}" data-tier-index="${tierIndex}" data-field="to" value="${tier.to}"></td>
         <td>
           <select data-digital-standard-tier data-product-index="${productIndex}" data-tier-index="${tierIndex}" data-field="type">
-            <option value="price"${tier.type === "price" ? " selected" : ""}>Цена</option>
+            <option value="price"${tier.type === "price" ? " selected" : ""}>Цена за единицу</option>
             <option value="discount"${tier.type === "discount" ? " selected" : ""}>Скидка %</option>
           </select>
         </td>
-        <td><input type="number" min="0" step="0.01" data-digital-standard-tier data-product-index="${productIndex}" data-tier-index="${tierIndex}" data-field="value" value="${tier.value}"></td>
+        <td><input type="number" min="0" step="0.01" placeholder="${tier.type === "discount" ? "Скидка в процентах" : "Цена за единицу"}" data-digital-standard-tier data-product-index="${productIndex}" data-tier-index="${tierIndex}" data-field="value" value="${tier.value}"></td>
         <td class="row-action-cell">
           <button type="button" class="delete-row-action" data-delete-digital-standard-tier data-product-index="${productIndex}" data-tier-index="${tierIndex}" aria-label="Удалить диапазон" title="Удалить диапазон">🗑</button>
         </td>
@@ -1838,7 +1839,7 @@ function renderDigitalStandardPriceTiers(product, productIndex) {
               <th>Количество от</th>
               <th>Количество до</th>
               <th>Тип</th>
-              <th>Значение</th>
+              <th>Цена за единицу / скидка %</th>
               <th></th>
             </tr>
           </thead>
@@ -3082,6 +3083,9 @@ document.addEventListener("change", (event) => {
     if (tier) {
       tier[field] = input.type === "number" ? Number(input.value) || 0 : input.value;
       saveSettings();
+      if (field === "type") {
+        renderDigitalTables();
+      }
     }
     return;
   }
