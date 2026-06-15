@@ -51,8 +51,8 @@
       </header>
 
       <nav class="tabs" aria-label="Разделы калькулятора">
-        <button type="button" class="tab-button is-active" data-tab="order">Расчет цены</button>
         <button type="button" class="tab-button" data-tab="clients">Клиенты</button>
+        <button type="button" class="tab-button is-active" data-tab="order">Расчет цены</button>
         <button type="button" class="tab-button" data-tab="settings">Формулы и коэффициенты</button>
         <button type="button" class="tab-button" data-tab="users">Пользователи</button>
       </nav>
@@ -1046,13 +1046,93 @@
         </div>
 
         <section class="data-section">
-          <div class="clients-grid" id="clientsGrid"></div>
+          <div class="section-heading">
+            <h3>Таблица клиентов</h3>
+            <div class="client-column-menu">
+              <button type="button" class="icon-action" id="clientColumnsButton" aria-expanded="false" aria-label="Колонки таблицы">☰</button>
+              <div class="client-columns-dropdown is-hidden" id="clientColumnsDropdown"></div>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table class="clients-table">
+              <thead id="clientsTableHead"></thead>
+              <tbody id="clientsTableBody"></tbody>
+            </table>
+          </div>
           <div class="section-actions">
-            <button type="button" class="save-action" id="saveClientsButton">Сохранить</button>
             <span class="save-status" id="clientsSaveStatus" aria-live="polite"></span>
           </div>
         </section>
       </section>
+
+      <div class="modal-backdrop is-hidden" id="clientModal" aria-hidden="true">
+        <section class="modal-dialog" role="dialog" aria-modal="true" aria-labelledby="clientModalTitle">
+          <div class="modal-header">
+            <h2 id="clientModalTitle">Новый клиент</h2>
+            <button type="button" class="ghost-action" id="closeClientModalButton">×</button>
+          </div>
+
+          <div class="client-modal-form">
+            <label class="full-span">
+              <span>Название</span>
+              <input id="clientNameInput" data-no-translate>
+            </label>
+
+            <div class="check-row full-span">
+              <label class="check-option">
+                <input id="clientLegalType" name="clientType" type="checkbox">
+                <span>Юрлицо</span>
+              </label>
+              <label class="check-option">
+                <input id="clientNaturalType" name="clientType" type="checkbox">
+                <span>Физлицо</span>
+              </label>
+            </div>
+
+            <label>
+              <span>Регистрационный номер</span>
+              <input id="clientRegistrationInput" data-no-translate>
+            </label>
+            <label>
+              <span>Номер VAT</span>
+              <input id="clientVatInput" data-no-translate>
+            </label>
+
+            <section class="repeatable-section full-span">
+              <div class="section-heading">
+                <h3>Контактные лица</h3>
+                <button type="button" class="add-action small-add-action" data-add-client-repeatable="contactPersons">+</button>
+              </div>
+              <div class="repeatable-list" id="clientContactPersonsList"></div>
+            </section>
+
+            <section class="repeatable-section full-span">
+              <div class="section-heading">
+                <h3>Адреса электронной почты</h3>
+                <button type="button" class="add-action small-add-action" data-add-client-repeatable="emails">+</button>
+              </div>
+              <div class="repeatable-list" id="clientEmailsList"></div>
+            </section>
+
+            <section class="repeatable-section full-span">
+              <div class="section-heading">
+                <h3>Телефоны</h3>
+                <button type="button" class="add-action small-add-action" data-add-client-repeatable="phones">+</button>
+              </div>
+              <div class="repeatable-list" id="clientPhonesList"></div>
+            </section>
+
+            <label class="full-span">
+              <span>Адрес клиента</span>
+              <textarea id="clientAddressInput" data-no-translate></textarea>
+            </label>
+          </div>
+
+          <div class="section-actions">
+            <button type="button" class="save-action" id="saveClientModalButton">Сохранить</button>
+          </div>
+        </section>
+      </div>
 
       <section class="tab-panel is-hidden" id="usersPanel">
         <div class="panel-header">

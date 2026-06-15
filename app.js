@@ -4,6 +4,8 @@ const STORAGE_KEY = "printcalc-settings-v1";
 const LANGUAGE_STORAGE_KEY = "printcalc-language";
 const AUTH_STORAGE_KEY = "printcalc-authenticated";
 const CURRENT_USER_STORAGE_KEY = "printcalc-current-user-login";
+const TAB_ORDER_STORAGE_KEY = "printcalc-top-tab-order";
+const CLIENT_COLUMNS_STORAGE_KEY = "printcalc-client-columns";
 const SETTINGS_API_URLS = ["/api/settings", "http://127.0.0.1:4174/api/settings"];
 const SPLIT_SETTINGS_FILE_GROUPS = [
   {
@@ -67,6 +69,16 @@ const USER_ADMIN_TABS = [
   { id: "users", label: "Пользователи" },
   { id: "roles", label: "Категории пользователей" },
   { id: "permissions", label: "Права доступа" }
+];
+const CLIENT_COLUMNS = [
+  { key: "name", label: "Название" },
+  { key: "type", label: "Тип клиента" },
+  { key: "registrationNumber", label: "Регистрационный номер" },
+  { key: "vatNumber", label: "Номер VAT" },
+  { key: "contactPersons", label: "Контактные лица" },
+  { key: "emails", label: "Адреса электронной почты" },
+  { key: "phones", label: "Телефоны" },
+  { key: "address", label: "Адрес клиента" }
 ];
 
 function getAccessPermissionDefinitions() {
@@ -151,17 +163,27 @@ const UI_TRANSLATIONS = {
   "Клиенты": "Clients",
   "База клиентов": "Client database",
   "Юридическое название": "Legal name",
+  "Название": "Name",
+  "Таблица клиентов": "Clients table",
+  "Юрлицо": "Legal entity",
+  "Физлицо": "Individual",
   "Адрес клиента": "Client address",
   "Адрес электронной почты": "Client email",
+  "Адреса электронной почты": "Email addresses",
   "Контактное лицо": "Contact person",
+  "Контактные лица": "Contact persons",
   "Номер телефона": "Phone number",
+  "Телефоны": "Phones",
   "Регистрационный номер": "Registration number",
+  "Номер VAT": "VAT number",
   "Регистрационный номер VAT": "VAT registration number",
+  "Редактировать": "Edit",
   "Клиент": "Client",
   "Новый клиент": "New client",
   "Клиенты пока не добавлены.": "No clients have been added yet.",
   "Новый клиент добавлен. Заполните карточку и нажмите «Сохранить».": "New client added. Fill in the card and click Save.",
   "Заполните юридическое название клиента.": "Fill in the client's legal name.",
+  "Заполните название клиента.": "Fill in the client name.",
   "Изменения клиента не сохранены. Нажмите «Сохранить».": "Client changes are not saved. Click Save.",
   "Выбор языка": "Language selection",
   "Рабочий расчет": "Work calculation",
@@ -385,17 +407,27 @@ const UI_TRANSLATIONS_ET = {
   "Клиенты": "Kliendid",
   "База клиентов": "Kliendibaas",
   "Юридическое название": "Ametlik ärinimi",
+  "Название": "Nimi",
+  "Таблица клиентов": "Klientide tabel",
+  "Юрлицо": "Juriidiline isik",
+  "Физлицо": "Eraisik",
   "Адрес клиента": "Kliendi aadress",
   "Адрес электронной почты": "Kliendi e-post",
+  "Адреса электронной почты": "E-posti aadressid",
   "Контактное лицо": "Kontaktisik",
+  "Контактные лица": "Kontaktisikud",
   "Номер телефона": "Telefoninumber",
+  "Телефоны": "Telefonid",
   "Регистрационный номер": "Registrikood",
+  "Номер VAT": "KMKR number",
   "Регистрационный номер VAT": "KMKR number",
+  "Редактировать": "Muuda",
   "Клиент": "Klient",
   "Новый клиент": "Uus klient",
   "Клиенты пока не добавлены.": "Kliente pole veel lisatud.",
   "Новый клиент добавлен. Заполните карточку и нажмите «Сохранить».": "Uus klient lisatud. Täida kaart ja vajuta Salvesta.",
   "Заполните юридическое название клиента.": "Sisesta kliendi ametlik ärinimi.",
+  "Заполните название клиента.": "Sisesta kliendi nimi.",
   "Изменения клиента не сохранены. Нажмите «Сохранить».": "Kliendi muudatused pole salvestatud. Vajuta Salvesta.",
   "Выбор языка": "Keele valik",
   "Рабочий расчет": "Tööarvutus",
@@ -698,6 +730,11 @@ let activeDigitalSettingsTab = DIGITAL_SETTINGS_TABS[0].id;
 let activeWideSettingsTab = WIDE_ROLL_SETTINGS_TABS[0].id;
 let activeClothesSettingsTab = CLOTHES_SETTINGS_TABS[0].id;
 let activeUserAdminTab = USER_ADMIN_TABS[0].id;
+let draggedTopTab = null;
+let topTabDragJustFinished = false;
+let clientSort = { key: "name", direction: "asc" };
+let editingClientIndex = null;
+let clientDraft = null;
 const pendingDigitalDeletes = {
   standardProducts: new Set(),
   materials: new Set(),
@@ -819,10 +856,25 @@ const usersSaveStatus = document.querySelector("#usersSaveStatus");
 const permissionsGrid = document.querySelector("#permissionsGrid");
 const savePermissionsButton = document.querySelector("#savePermissionsButton");
 const permissionsSaveStatus = document.querySelector("#permissionsSaveStatus");
-const clientsGrid = document.querySelector("#clientsGrid");
+const clientColumnsButton = document.querySelector("#clientColumnsButton");
+const clientColumnsDropdown = document.querySelector("#clientColumnsDropdown");
+const clientsTableHead = document.querySelector("#clientsTableHead");
+const clientsTableBody = document.querySelector("#clientsTableBody");
 const addClientButton = document.querySelector("#addClientButton");
-const saveClientsButton = document.querySelector("#saveClientsButton");
 const clientsSaveStatus = document.querySelector("#clientsSaveStatus");
+const clientModal = document.querySelector("#clientModal");
+const clientModalTitle = document.querySelector("#clientModalTitle");
+const closeClientModalButton = document.querySelector("#closeClientModalButton");
+const saveClientModalButton = document.querySelector("#saveClientModalButton");
+const clientNameInput = document.querySelector("#clientNameInput");
+const clientLegalType = document.querySelector("#clientLegalType");
+const clientNaturalType = document.querySelector("#clientNaturalType");
+const clientRegistrationInput = document.querySelector("#clientRegistrationInput");
+const clientVatInput = document.querySelector("#clientVatInput");
+const clientAddressInput = document.querySelector("#clientAddressInput");
+const clientContactPersonsList = document.querySelector("#clientContactPersonsList");
+const clientEmailsList = document.querySelector("#clientEmailsList");
+const clientPhonesList = document.querySelector("#clientPhonesList");
 
 const UI_TRANSLATIONS_BY_LANGUAGE = {
   en: UI_TRANSLATIONS,
@@ -1335,11 +1387,12 @@ function normalizeSettings(savedSettings) {
   }
   const normalizedClientsSource = Array.isArray(normalized.clients) ? normalized.clients : [];
   normalized.clients = normalizedClientsSource.map((client) => ({
-    legalName: client.legalName || "",
+    name: client.name || client.legalName || "",
+    type: client.type === "natural" ? "natural" : "legal",
     address: client.address || "",
-    email: client.email || "",
-    contactPerson: client.contactPerson || "",
-    phone: client.phone || "",
+    emails: Array.isArray(client.emails) ? client.emails : [client.email].filter(Boolean),
+    contactPersons: Array.isArray(client.contactPersons) ? client.contactPersons : [client.contactPerson].filter(Boolean),
+    phones: Array.isArray(client.phones) ? client.phones : [client.phone].filter(Boolean),
     registrationNumber: client.registrationNumber || "",
     vatNumber: client.vatNumber || ""
   }));
@@ -1397,6 +1450,10 @@ function formatNumber(value) {
 function showDashboard() {
   loginView.classList.add("is-hidden");
   dashboardView.classList.remove("is-hidden");
+  applySavedTopTabOrder();
+  document.querySelectorAll(".tab-button").forEach((button) => {
+    button.draggable = true;
+  });
   updateTopbarUser();
   renderAll();
 }
@@ -1468,6 +1525,69 @@ function canAccessTopLevelTab(tabName) {
   if (tabName === "clients") return hasPermission("clients");
   if (tabName === "settings") return hasPermission("settings");
   if (tabName === "users") return hasPermission("users");
+  return true;
+}
+
+function getDefaultTopTabOrder() {
+  return Array.from(document.querySelectorAll(".tab-button")).map((button) => button.dataset.tab);
+}
+
+function getTopTabOrderStorageKey() {
+  const login = sessionStorage.getItem(CURRENT_USER_STORAGE_KEY) || "anonymous";
+  return `${TAB_ORDER_STORAGE_KEY}:${login}`;
+}
+
+function getSavedTopTabOrder() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(getTopTabOrderStorageKey()) || "[]");
+    const defaultOrder = getDefaultTopTabOrder();
+    const savedValidTabs = Array.isArray(saved) ? saved.filter((tabName) => defaultOrder.includes(tabName)) : [];
+    return [...savedValidTabs, ...defaultOrder.filter((tabName) => !savedValidTabs.includes(tabName))];
+  } catch {
+    return getDefaultTopTabOrder();
+  }
+}
+
+function saveTopTabOrder() {
+  const order = Array.from(document.querySelectorAll(".tab-button")).map((button) => button.dataset.tab);
+  localStorage.setItem(getTopTabOrderStorageKey(), JSON.stringify(order));
+}
+
+function applySavedTopTabOrder() {
+  const tabsContainer = document.querySelector(".tabs");
+  if (!tabsContainer) {
+    return;
+  }
+
+  const buttonsByTab = Object.fromEntries(
+    Array.from(tabsContainer.querySelectorAll(".tab-button")).map((button) => [button.dataset.tab, button])
+  );
+
+  getSavedTopTabOrder().forEach((tabName) => {
+    if (buttonsByTab[tabName]) {
+      tabsContainer.appendChild(buttonsByTab[tabName]);
+    }
+  });
+}
+
+function moveTopTab(fromTab, toTab) {
+  if (!fromTab || !toTab || fromTab === toTab) {
+    return false;
+  }
+
+  const tabsContainer = document.querySelector(".tabs");
+  const fromButton = tabsContainer?.querySelector(`.tab-button[data-tab="${fromTab}"]`);
+  const toButton = tabsContainer?.querySelector(`.tab-button[data-tab="${toTab}"]`);
+  if (!tabsContainer || !fromButton || !toButton) {
+    return false;
+  }
+
+  const buttons = Array.from(tabsContainer.querySelectorAll(".tab-button"));
+  const fromIndex = buttons.indexOf(fromButton);
+  const toIndex = buttons.indexOf(toButton);
+  const nextButton = fromIndex < toIndex ? toButton.nextElementSibling : toButton;
+  tabsContainer.insertBefore(fromButton, nextButton);
+  saveTopTabOrder();
   return true;
 }
 
@@ -2519,11 +2639,12 @@ function validateUsers() {
 
 function createEmptyClient() {
   return {
-    legalName: "",
+    name: "",
+    type: "legal",
     address: "",
-    email: "",
-    contactPerson: "",
-    phone: "",
+    emails: [""],
+    contactPersons: [""],
+    phones: [""],
     registrationNumber: "",
     vatNumber: ""
   };
@@ -2542,44 +2663,86 @@ function showClientsStatus(message, isError = false) {
   clientsSaveStatus.classList.toggle("is-error", isError);
 }
 
-function clientField(label, field, client, index, fullSpan = false) {
-  return `
-    <label class="${fullSpan ? "full-span" : ""}">
-      <span>${label}</span>
-      <input data-client-field="${field}" data-index="${index}" value="${escapeHtml(client[field])}" data-no-translate>
-    </label>
-  `;
+function getVisibleClientColumns() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(CLIENT_COLUMNS_STORAGE_KEY) || "[]");
+    const validKeys = CLIENT_COLUMNS.map((column) => column.key);
+    return Array.isArray(saved) && saved.length > 0
+      ? saved.filter((key) => validKeys.includes(key))
+      : validKeys;
+  } catch {
+    return CLIENT_COLUMNS.map((column) => column.key);
+  }
+}
+
+function saveVisibleClientColumns(keys) {
+  localStorage.setItem(CLIENT_COLUMNS_STORAGE_KEY, JSON.stringify(keys));
+}
+
+function getClientCellValue(client, key) {
+  if (key === "type") return client.type === "natural" ? "Физлицо" : "Юрлицо";
+  if (key === "emails") return (client.emails || []).filter(Boolean).join(", ");
+  if (key === "contactPersons") return (client.contactPersons || []).filter(Boolean).join(", ");
+  if (key === "phones") return (client.phones || []).filter(Boolean).join(", ");
+  return client[key] || "";
+}
+
+function getSortedClients() {
+  return settings.clients
+    .map((client, index) => ({ client, index }))
+    .sort((a, b) => {
+      const aValue = String(getClientCellValue(a.client, clientSort.key)).toLocaleLowerCase();
+      const bValue = String(getClientCellValue(b.client, clientSort.key)).toLocaleLowerCase();
+      return aValue.localeCompare(bValue, "ru") * (clientSort.direction === "asc" ? 1 : -1);
+    });
 }
 
 function renderClients() {
-  if (!clientsGrid) {
+  if (!clientsTableHead || !clientsTableBody || !clientColumnsDropdown) {
     return;
   }
 
-  clientsGrid.innerHTML = settings.clients.length > 0
-    ? settings.clients.map((client, index) => `
-      <article class="client-card">
-        <div class="client-card-header">
-          <h3 class="client-card-title"${client.legalName ? " data-no-translate" : ""}>${escapeHtml(client.legalName || "Новый клиент")}</h3>
-        </div>
-        <div class="client-fields">
-          ${clientField("Юридическое название", "legalName", client, index, true)}
-          ${clientField("Адрес клиента", "address", client, index, true)}
-          ${clientField("Адрес электронной почты", "email", client, index)}
-          ${clientField("Контактное лицо", "contactPerson", client, index)}
-          ${clientField("Номер телефона", "phone", client, index)}
-          ${clientField("Регистрационный номер", "registrationNumber", client, index)}
-          ${clientField("Регистрационный номер VAT", "vatNumber", client, index)}
-        </div>
-      </article>
+  const visibleColumns = getVisibleClientColumns();
+  clientColumnsDropdown.innerHTML = CLIENT_COLUMNS.map((column) => `
+    <label class="client-column-toggle">
+      <input type="checkbox" data-client-column="${column.key}"${visibleColumns.includes(column.key) ? " checked" : ""}>
+      <span>${column.label}</span>
+    </label>
+  `).join("");
+
+  clientsTableHead.innerHTML = `
+    <tr>
+      ${CLIENT_COLUMNS
+        .filter((column) => visibleColumns.includes(column.key))
+        .map((column) => `
+          <th>
+            <button type="button" data-client-sort="${column.key}">
+              ${column.label}${clientSort.key === column.key ? (clientSort.direction === "asc" ? " ↑" : " ↓") : ""}
+            </button>
+          </th>
+        `).join("")}
+      <th></th>
+    </tr>
+  `;
+
+  clientsTableBody.innerHTML = settings.clients.length > 0
+    ? getSortedClients().map(({ client, index }) => `
+      <tr>
+        ${CLIENT_COLUMNS
+          .filter((column) => visibleColumns.includes(column.key))
+          .map((column) => `<td data-no-translate>${escapeHtml(getClientCellValue(client, column.key))}</td>`)
+          .join("")}
+        <td class="row-action-cell">
+          <button type="button" class="secondary-action" data-edit-client="${index}">Редактировать</button>
+        </td>
+      </tr>
     `).join("")
-    : `<p class="section-hint">Клиенты пока не добавлены.</p>`;
+    : `<tr><td colspan="${visibleColumns.length + 1}">Клиенты пока не добавлены.</td></tr>`;
 }
 
 function validateClients() {
-  const hasEmptyLegalName = settings.clients.some((client) => !String(client.legalName || "").trim());
-  if (hasEmptyLegalName) {
-    showClientsStatus("Заполните юридическое название клиента.", true);
+  if (!clientDraft || !String(clientDraft.name || "").trim()) {
+    showClientsStatus("Заполните название клиента.", true);
     return false;
   }
 
@@ -2594,6 +2757,77 @@ function discardPendingClientsWithWarning() {
   showClientsStatus("Изменения клиента не сохранены. Нажмите «Сохранить».", true);
   activateTopLevelTab("clients");
   return true;
+}
+
+function renderClientRepeatableList(listName) {
+  const containers = {
+    contactPersons: clientContactPersonsList,
+    emails: clientEmailsList,
+    phones: clientPhonesList
+  };
+  const container = containers[listName];
+  if (!container || !clientDraft) {
+    return;
+  }
+
+  clientDraft[listName] = Array.isArray(clientDraft[listName]) && clientDraft[listName].length > 0
+    ? clientDraft[listName]
+    : [""];
+
+  container.innerHTML = clientDraft[listName].map((value, index) => `
+    <div class="repeatable-row">
+      <input data-client-repeatable="${listName}" data-index="${index}" value="${escapeHtml(value)}" data-no-translate>
+      <button type="button" class="delete-row-action" data-delete-client-repeatable="${listName}" data-index="${index}" title="Удалить строку">×</button>
+    </div>
+  `).join("");
+}
+
+function renderClientModal() {
+  if (!clientDraft) {
+    return;
+  }
+
+  clientModalTitle.textContent = editingClientIndex === null ? "Новый клиент" : "Клиент";
+  clientNameInput.value = clientDraft.name || "";
+  clientLegalType.checked = clientDraft.type !== "natural";
+  clientNaturalType.checked = clientDraft.type === "natural";
+  clientRegistrationInput.value = clientDraft.registrationNumber || "";
+  clientVatInput.value = clientDraft.vatNumber || "";
+  clientAddressInput.value = clientDraft.address || "";
+  renderClientRepeatableList("contactPersons");
+  renderClientRepeatableList("emails");
+  renderClientRepeatableList("phones");
+  applyLanguage();
+}
+
+function openClientModal(index = null) {
+  editingClientIndex = index;
+  clientDraft = index === null
+    ? createEmptyClient()
+    : structuredClone(settings.clients[index] || createEmptyClient());
+  clientModal.classList.remove("is-hidden");
+  clientModal.setAttribute("aria-hidden", "false");
+  renderClientModal();
+  clientNameInput.focus();
+}
+
+function closeClientModal() {
+  clientModal.classList.add("is-hidden");
+  clientModal.setAttribute("aria-hidden", "true");
+  editingClientIndex = null;
+  clientDraft = null;
+}
+
+function updateClientDraftFromModal() {
+  if (!clientDraft) {
+    return;
+  }
+
+  clientDraft.name = clientNameInput.value.trim();
+  clientDraft.type = clientNaturalType.checked ? "natural" : "legal";
+  clientDraft.registrationNumber = clientRegistrationInput.value.trim();
+  clientDraft.vatNumber = clientVatInput.value.trim();
+  clientDraft.address = clientAddressInput.value.trim();
 }
 
 function createDigitalStandardTier(product) {
@@ -3652,6 +3886,11 @@ languageButtons.forEach((button) => {
 
 document.querySelectorAll(".tab-button").forEach((button) => {
   button.addEventListener("click", () => {
+    if (topTabDragJustFinished) {
+      topTabDragJustFinished = false;
+      return;
+    }
+
     if (!canAccessTopLevelTab(button.dataset.tab)) {
       activateTopLevelTab("order");
       return;
@@ -3889,11 +4128,18 @@ document.addEventListener("input", (event) => {
     return;
   }
 
-  if (input.matches("[data-client-field]")) {
+  if (input.matches("[data-client-repeatable]")) {
+    const listName = input.dataset.clientRepeatable;
     const index = Number(input.dataset.index);
-    const field = input.dataset.clientField;
-    settings.clients[index][field] = input.value;
-    pendingClientsDirty = true;
+    if (clientDraft?.[listName]) {
+      clientDraft[listName][index] = input.value;
+    }
+    showClientsStatus("");
+    return;
+  }
+
+  if ([clientNameInput, clientRegistrationInput, clientVatInput, clientAddressInput].includes(input)) {
+    updateClientDraftFromModal();
     showClientsStatus("");
     return;
   }
@@ -4004,6 +4250,29 @@ document.addEventListener("input", (event) => {
 
 document.addEventListener("change", (event) => {
   const input = event.target;
+  if (input.matches("[data-client-column]")) {
+    const selected = Array.from(document.querySelectorAll("[data-client-column]:checked")).map((checkbox) => checkbox.dataset.clientColumn);
+    saveVisibleClientColumns(selected.length > 0 ? selected : CLIENT_COLUMNS.map((column) => column.key));
+    renderClients();
+    return;
+  }
+
+  if (input === clientLegalType || input === clientNaturalType) {
+    if (input === clientLegalType && input.checked) {
+      clientNaturalType.checked = false;
+    }
+    if (input === clientNaturalType && input.checked) {
+      clientLegalType.checked = false;
+    }
+    if (!clientLegalType.checked && !clientNaturalType.checked) {
+      input.checked = true;
+    }
+    if (clientDraft) {
+      clientDraft.type = clientNaturalType.checked ? "natural" : "legal";
+    }
+    return;
+  }
+
   if (input.matches("[data-digital-standard-tier]")) {
     const productIndex = Number(input.dataset.productIndex);
     const tierIndex = Number(input.dataset.tierIndex);
@@ -4037,6 +4306,14 @@ document.addEventListener("change", (event) => {
 });
 
 document.addEventListener("dragstart", (event) => {
+  const topTab = event.target.closest(".tab-button");
+  if (topTab) {
+    draggedTopTab = topTab.dataset.tab;
+    topTab.classList.add("is-dragging");
+    event.dataTransfer.effectAllowed = "move";
+    return;
+  }
+
   const clothesHandle = event.target.closest("[data-drag-clothes-row]");
   if (clothesHandle) {
     const list = clothesHandle.dataset.dragClothesRow;
@@ -4110,6 +4387,15 @@ document.addEventListener("dragstart", (event) => {
 });
 
 document.addEventListener("dragover", (event) => {
+  const topTabTarget = event.target.closest(".tab-button");
+  if (draggedTopTab && topTabTarget) {
+    event.preventDefault();
+    event.dataTransfer.dropEffect = "move";
+    document.querySelectorAll(".is-drag-over").forEach((row) => row.classList.remove("is-drag-over"));
+    topTabTarget.classList.add("is-drag-over");
+    return;
+  }
+
   const clothesTargetRow = event.target.closest("[data-clothes-row-list]");
   if (draggedClothesRow && clothesTargetRow && clothesTargetRow.dataset.clothesRowList === draggedClothesRow.list) {
     event.preventDefault();
@@ -4149,6 +4435,21 @@ document.addEventListener("dragover", (event) => {
 });
 
 document.addEventListener("drop", (event) => {
+  const topTabTarget = event.target.closest(".tab-button");
+  if (draggedTopTab && topTabTarget) {
+    event.preventDefault();
+    moveTopTab(draggedTopTab, topTabTarget.dataset.tab);
+    draggedTopTab = null;
+    topTabDragJustFinished = true;
+    window.setTimeout(() => {
+      topTabDragJustFinished = false;
+    }, 250);
+    document.querySelectorAll(".is-dragging, .is-drag-over").forEach((row) => {
+      row.classList.remove("is-dragging", "is-drag-over");
+    });
+    return;
+  }
+
   const clothesTargetRow = event.target.closest("[data-clothes-row-list]");
   if (draggedClothesRow && clothesTargetRow && clothesTargetRow.dataset.clothesRowList === draggedClothesRow.list) {
     event.preventDefault();
@@ -4222,6 +4523,7 @@ document.addEventListener("drop", (event) => {
 });
 
 document.addEventListener("dragend", () => {
+  draggedTopTab = null;
   draggedDigitalRow = null;
   draggedUserRow = null;
   draggedWideRow = null;
@@ -4456,24 +4758,86 @@ document.addEventListener("click", (event) => {
   }
 
   if (event.target.closest("#addClientButton")) {
-    settings.clients.push(createEmptyClient());
-    pendingClientsDirty = true;
-    renderClients();
-    applyLanguage();
-    showClientsStatus("Новый клиент добавлен. Заполните карточку и нажмите «Сохранить».");
+    openClientModal();
     return;
   }
 
-  if (event.target.closest("#saveClientsButton")) {
+  if (event.target.closest("#clientColumnsButton")) {
+    const isOpen = !clientColumnsDropdown.classList.contains("is-hidden");
+    clientColumnsDropdown.classList.toggle("is-hidden", isOpen);
+    clientColumnsButton.setAttribute("aria-expanded", String(!isOpen));
+    return;
+  }
+
+  if (clientColumnsDropdown && !clientColumnsDropdown.classList.contains("is-hidden") && !event.target.closest(".client-column-menu")) {
+    clientColumnsDropdown.classList.add("is-hidden");
+    clientColumnsButton.setAttribute("aria-expanded", "false");
+  }
+
+  const editClientButton = event.target.closest("[data-edit-client]");
+  if (editClientButton) {
+    openClientModal(Number(editClientButton.dataset.editClient));
+    return;
+  }
+
+  if (event.target.closest("#closeClientModalButton") || event.target === clientModal) {
+    closeClientModal();
+    return;
+  }
+
+  const addClientRepeatableButton = event.target.closest("[data-add-client-repeatable]");
+  if (addClientRepeatableButton) {
+    const listName = addClientRepeatableButton.dataset.addClientRepeatable;
+    if (clientDraft?.[listName]) {
+      clientDraft[listName].push("");
+      renderClientRepeatableList(listName);
+    }
+    return;
+  }
+
+  const deleteClientRepeatableButton = event.target.closest("[data-delete-client-repeatable]");
+  if (deleteClientRepeatableButton) {
+    const listName = deleteClientRepeatableButton.dataset.deleteClientRepeatable;
+    const index = Number(deleteClientRepeatableButton.dataset.index);
+    if (clientDraft?.[listName]) {
+      clientDraft[listName].splice(index, 1);
+      if (clientDraft[listName].length === 0) {
+        clientDraft[listName].push("");
+      }
+      renderClientRepeatableList(listName);
+    }
+    return;
+  }
+
+  const clientSortButton = event.target.closest("[data-client-sort]");
+  if (clientSortButton) {
+    const key = clientSortButton.dataset.clientSort;
+    clientSort = {
+      key,
+      direction: clientSort.key === key && clientSort.direction === "asc" ? "desc" : "asc"
+    };
+    renderClients();
+    return;
+  }
+
+  if (event.target.closest("#saveClientModalButton")) {
+    updateClientDraftFromModal();
     if (!validateClients()) {
       return;
     }
 
-    pendingClientsDirty = false;
+    clientDraft.emails = clientDraft.emails.map((item) => item.trim()).filter(Boolean);
+    clientDraft.contactPersons = clientDraft.contactPersons.map((item) => item.trim()).filter(Boolean);
+    clientDraft.phones = clientDraft.phones.map((item) => item.trim()).filter(Boolean);
+    if (editingClientIndex === null) {
+      settings.clients.push(clientDraft);
+    } else {
+      settings.clients[editingClientIndex] = clientDraft;
+    }
     saveSettings();
     renderClients();
-    applyLanguage();
     showClientsStatus("Сохранено");
+    closeClientModal();
     return;
   }
 
