@@ -5,7 +5,18 @@ const LANGUAGE_STORAGE_KEY = "printcalc-language";
 const AUTH_STORAGE_KEY = "printcalc-authenticated";
 const CURRENT_USER_STORAGE_KEY = "printcalc-current-user-login";
 const SETTINGS_API_URLS = ["/api/settings", "http://127.0.0.1:4174/api/settings"];
-const SETTINGS_FILE_URLS = ["data/settings.json", "/data/settings.json"];
+const SPLIT_SETTINGS_FILE_GROUPS = [
+  {
+    users: "data/users.json",
+    clients: "data/clients.json",
+    pricing: "data/pricing.json"
+  },
+  {
+    users: "/data/users.json",
+    clients: "/data/clients.json",
+    pricing: "/data/pricing.json"
+  }
+];
 const CUSTOM_WIDE_MATERIAL_VALUE = "__custom__";
 const DIGITAL_CATEGORY = "Цифровая печать";
 const WIDE_CATEGORY = "Широкоформатная печать";
@@ -63,6 +74,21 @@ const UI_TRANSLATIONS = {
   "Расчет цены": "Price calculation",
   "Формулы и коэффициенты": "Formulas and coefficients",
   "Пользователи": "Users",
+  "Клиенты": "Clients",
+  "База клиентов": "Client database",
+  "Юридическое название": "Legal name",
+  "Адрес клиента": "Client address",
+  "Адрес электронной почты": "Client email",
+  "Контактное лицо": "Contact person",
+  "Номер телефона": "Phone number",
+  "Регистрационный номер": "Registration number",
+  "Регистрационный номер VAT": "VAT registration number",
+  "Клиент": "Client",
+  "Новый клиент": "New client",
+  "Клиенты пока не добавлены.": "No clients have been added yet.",
+  "Новый клиент добавлен. Заполните карточку и нажмите «Сохранить».": "New client added. Fill in the card and click Save.",
+  "Заполните юридическое название клиента.": "Fill in the client's legal name.",
+  "Изменения клиента не сохранены. Нажмите «Сохранить».": "Client changes are not saved. Click Save.",
   "Выбор языка": "Language selection",
   "Рабочий расчет": "Work calculation",
   "База расчетов": "Calculation base",
@@ -263,6 +289,21 @@ const UI_TRANSLATIONS_ET = {
   "Расчет цены": "Hinna arvutus",
   "Формулы и коэффициенты": "Valemid ja koefitsiendid",
   "Пользователи": "Kasutajad",
+  "Клиенты": "Kliendid",
+  "База клиентов": "Kliendibaas",
+  "Юридическое название": "Ametlik ärinimi",
+  "Адрес клиента": "Kliendi aadress",
+  "Адрес электронной почты": "Kliendi e-post",
+  "Контактное лицо": "Kontaktisik",
+  "Номер телефона": "Telefoninumber",
+  "Регистрационный номер": "Registrikood",
+  "Регистрационный номер VAT": "KMKR number",
+  "Клиент": "Klient",
+  "Новый клиент": "Uus klient",
+  "Клиенты пока не добавлены.": "Kliente pole veel lisatud.",
+  "Новый клиент добавлен. Заполните карточку и нажмите «Сохранить».": "Uus klient lisatud. Täida kaart ja vajuta Salvesta.",
+  "Заполните юридическое название клиента.": "Sisesta kliendi ametlik ärinimi.",
+  "Изменения клиента не сохранены. Нажмите «Сохранить».": "Kliendi muudatused pole salvestatud. Vajuta Salvesta.",
   "Выбор языка": "Keele valik",
   "Рабочий расчет": "Tööarvutus",
   "База расчетов": "Arvutuste baas",
@@ -455,6 +496,10 @@ const defaults = {
   users: [
     { firstName: "Максим", lastName: "Ходус", role: "admin", login: ADMIN_LOGIN, password: ADMIN_PASSWORD }
   ],
+  access: {
+    roles: USER_ROLES
+  },
+  clients: [],
   products: [
     { id: "digital-a4", category: "Цифровая печать", name: "Листовка A4", base: 0.12, margin: 1.75, minimum: 15 },
     { id: "digital-business", category: "Цифровая печать", name: "Визитки", base: 0.06, margin: 2.1, minimum: 20 },
@@ -568,6 +613,7 @@ const pendingDigitalDeletes = {
 let draggedDigitalRow = null;
 const pendingUserDeletes = new Set();
 let draggedUserRow = null;
+let pendingClientsDirty = false;
 const pendingWideDeletes = {
   rollStandardProducts: new Set(),
   rollMaterials: new Set(),
@@ -670,6 +716,10 @@ const addUserButton = document.querySelector("#addUserButton");
 const saveUsersButton = document.querySelector("#saveUsersButton");
 const undoUserDeleteButton = document.querySelector("#undoUserDeleteButton");
 const usersSaveStatus = document.querySelector("#usersSaveStatus");
+const clientsGrid = document.querySelector("#clientsGrid");
+const addClientButton = document.querySelector("#addClientButton");
+const saveClientsButton = document.querySelector("#saveClientsButton");
+const clientsSaveStatus = document.querySelector("#clientsSaveStatus");
 
 const UI_TRANSLATIONS_BY_LANGUAGE = {
   en: UI_TRANSLATIONS,
@@ -953,39 +1003,58 @@ function loadLocalSettings() {
   }
 }
 
-async function loadSettings() {
-  const localSettings = loadLocalSettings();
+async function loadJsonFile(url) {
+  const response = await fetch(url, { cache: "no-store" });
+  if (!response.ok) {
+    throw new Error(`Не удалось загрузить ${url}`);
+  }
 
+  return response.json();
+}
+
+async function loadSplitSettingsFromFiles() {
+  const errors = [];
+  for (const group of SPLIT_SETTINGS_FILE_GROUPS) {
+    try {
+      const [usersData, clientsData, pricingData] = await Promise.all([
+        loadJsonFile(group.users),
+        loadJsonFile(group.clients),
+        loadJsonFile(group.pricing)
+      ]);
+
+      return {
+        ...pricingData,
+        users: Array.isArray(usersData.users) ? usersData.users : [],
+        access: usersData.access || {},
+        clients: Array.isArray(clientsData.clients) ? clientsData.clients : []
+      };
+    } catch (error) {
+      errors.push(error.message);
+    }
+  }
+
+  throw new Error(`Раздельная база данных недоступна. Проверьте data/users.json, data/clients.json и data/pricing.json. ${errors.join(" ")}`);
+}
+
+async function loadSettings() {
   for (const apiUrl of SETTINGS_API_URLS) {
     try {
       const response = await fetch(apiUrl, { cache: "no-store" });
       if (response.ok) {
         return normalizeSettings(await response.json());
       }
+      const body = await response.text();
+      throw new Error(body || `Не удалось загрузить ${apiUrl}`);
     } catch {
       // Try the next API URL. Static file mode has no API.
     }
   }
 
-  for (const fileUrl of SETTINGS_FILE_URLS) {
-    try {
-      const response = await fetch(fileUrl, { cache: "no-store" });
-      if (response.ok) {
-        return normalizeSettings(await response.json());
-      }
-    } catch {
-      // Try the next JSON file URL.
-    }
-  }
-
-  if (localSettings) {
-    return localSettings;
-  }
-
-  return structuredClone(defaults);
+  return normalizeSettings(await loadSplitSettingsFromFiles());
 }
 
 function normalizeSettings(savedSettings) {
+  savedSettings = savedSettings || {};
   const normalized = {
     ...structuredClone(defaults),
     ...savedSettings,
@@ -1134,6 +1203,27 @@ function normalizeSettings(savedSettings) {
   if (normalized.users.length === 0) {
     normalized.users = structuredClone(defaults.users);
   }
+  normalized.access = {
+    ...structuredClone(defaults.access),
+    ...(normalized.access || {})
+  };
+  normalized.access.roles = Array.isArray(normalized.access.roles) && normalized.access.roles.length > 0
+    ? normalized.access.roles.map((role) => ({
+      id: role.id || "user",
+      label: role.label || "Пользователь"
+    }))
+    : structuredClone(defaults.access.roles);
+
+  const normalizedClientsSource = Array.isArray(normalized.clients) ? normalized.clients : [];
+  normalized.clients = normalizedClientsSource.map((client) => ({
+    legalName: client.legalName || "",
+    address: client.address || "",
+    email: client.email || "",
+    contactPerson: client.contactPerson || "",
+    phone: client.phone || "",
+    registrationNumber: client.registrationNumber || "",
+    vatNumber: client.vatNumber || ""
+  }));
 
   return normalized;
 }
@@ -1195,6 +1285,18 @@ function showDashboard() {
 function showLogin() {
   dashboardView.classList.add("is-hidden");
   loginView.classList.remove("is-hidden");
+  loginForm.querySelectorAll("input, button").forEach((element) => {
+    element.disabled = false;
+  });
+}
+
+function showDatabaseLoadError(error) {
+  dashboardView.classList.add("is-hidden");
+  loginView.classList.remove("is-hidden");
+  loginError.textContent = `Ошибка загрузки базы данных. Проверьте доступ к data/users.json, data/clients.json и data/pricing.json. ${error.message || ""}`.trim();
+  loginForm.querySelectorAll("input, button").forEach((element) => {
+    element.disabled = true;
+  });
 }
 
 function getCurrentUser() {
@@ -1206,6 +1308,14 @@ function getCurrentUser() {
 
 function isCurrentUserAdmin() {
   return getCurrentUser().role === "admin";
+}
+
+function isCurrentUserSeller() {
+  return getCurrentUser().role === "seller";
+}
+
+function canCurrentUserAccessClients() {
+  return isCurrentUserAdmin() || isCurrentUserSeller();
 }
 
 function activateTopLevelTab(tabName) {
@@ -1236,14 +1346,25 @@ function updateTopbarUser() {
 
 function applyRoleAccess() {
   const isAdmin = isCurrentUserAdmin();
+  const canAccessClients = canCurrentUserAccessClients();
 
   document.querySelectorAll("[data-admin-only]").forEach((element) => {
     element.classList.toggle("is-hidden", !isAdmin);
     element.toggleAttribute("aria-hidden", !isAdmin);
   });
 
+  document.querySelectorAll("[data-admin-seller-only]").forEach((element) => {
+    element.classList.toggle("is-hidden", !canAccessClients);
+    element.toggleAttribute("aria-hidden", !canAccessClients);
+  });
+
   const activeRestrictedTab = document.querySelector(".tab-button.is-active[data-admin-only]");
   if (!isAdmin && activeRestrictedTab) {
+    activateTopLevelTab("order");
+  }
+
+  const activeClientTab = document.querySelector(".tab-button.is-active[data-admin-seller-only]");
+  if (!canAccessClients && activeClientTab) {
     activateTopLevelTab("order");
   }
 }
@@ -1255,6 +1376,7 @@ function renderAll() {
   renderDigitalSettingsTabs();
   renderWideSettingsTabs();
   renderClothesSettingsTabs();
+  renderClients();
   renderUsersTable();
   renderSelectors();
   renderTables();
@@ -2121,6 +2243,85 @@ function validateUsers() {
     return false;
   }
 
+  return true;
+}
+
+function createEmptyClient() {
+  return {
+    legalName: "",
+    address: "",
+    email: "",
+    contactPerson: "",
+    phone: "",
+    registrationNumber: "",
+    vatNumber: ""
+  };
+}
+
+function escapeHtml(value) {
+  return String(value ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;");
+}
+
+function showClientsStatus(message, isError = false) {
+  clientsSaveStatus.textContent = message ? translateStaticText(message, currentLanguage) : "";
+  clientsSaveStatus.classList.toggle("is-error", isError);
+}
+
+function clientField(label, field, client, index, fullSpan = false) {
+  return `
+    <label class="${fullSpan ? "full-span" : ""}">
+      <span>${label}</span>
+      <input data-client-field="${field}" data-index="${index}" value="${escapeHtml(client[field])}" data-no-translate>
+    </label>
+  `;
+}
+
+function renderClients() {
+  if (!clientsGrid) {
+    return;
+  }
+
+  clientsGrid.innerHTML = settings.clients.length > 0
+    ? settings.clients.map((client, index) => `
+      <article class="client-card">
+        <div class="client-card-header">
+          <h3 class="client-card-title"${client.legalName ? " data-no-translate" : ""}>${escapeHtml(client.legalName || "Новый клиент")}</h3>
+        </div>
+        <div class="client-fields">
+          ${clientField("Юридическое название", "legalName", client, index, true)}
+          ${clientField("Адрес клиента", "address", client, index, true)}
+          ${clientField("Адрес электронной почты", "email", client, index)}
+          ${clientField("Контактное лицо", "contactPerson", client, index)}
+          ${clientField("Номер телефона", "phone", client, index)}
+          ${clientField("Регистрационный номер", "registrationNumber", client, index)}
+          ${clientField("Регистрационный номер VAT", "vatNumber", client, index)}
+        </div>
+      </article>
+    `).join("")
+    : `<p class="section-hint">Клиенты пока не добавлены.</p>`;
+}
+
+function validateClients() {
+  const hasEmptyLegalName = settings.clients.some((client) => !String(client.legalName || "").trim());
+  if (hasEmptyLegalName) {
+    showClientsStatus("Заполните юридическое название клиента.", true);
+    return false;
+  }
+
+  return true;
+}
+
+function discardPendingClientsWithWarning() {
+  if (!pendingClientsDirty) {
+    return false;
+  }
+
+  showClientsStatus("Изменения клиента не сохранены. Нажмите «Сохранить».", true);
+  activateTopLevelTab("clients");
   return true;
 }
 
@@ -3185,7 +3386,12 @@ document.querySelectorAll(".tab-button").forEach((button) => {
       return;
     }
 
-    if (discardPendingDeletesWithWarning() || discardPendingWideDeletesWithWarning() || discardPendingClothesDeletesWithWarning() || discardPendingUserDeletesWithWarning()) {
+    if (button.hasAttribute("data-admin-seller-only") && !canCurrentUserAccessClients()) {
+      activateTopLevelTab("order");
+      return;
+    }
+
+    if (discardPendingDeletesWithWarning() || discardPendingWideDeletesWithWarning() || discardPendingClothesDeletesWithWarning() || discardPendingUserDeletesWithWarning() || discardPendingClientsWithWarning()) {
       return;
     }
 
@@ -3414,6 +3620,15 @@ document.addEventListener("input", (event) => {
     settings.widePrint.rollClientTypes[field] = Number(input.value) || 0;
     saveSettings();
     calculateOrder();
+    return;
+  }
+
+  if (input.matches("[data-client-field]")) {
+    const index = Number(input.dataset.index);
+    const field = input.dataset.clientField;
+    settings.clients[index][field] = input.value;
+    pendingClientsDirty = true;
+    showClientsStatus("");
     return;
   }
 
@@ -3888,6 +4103,28 @@ document.addEventListener("click", (event) => {
     return;
   }
 
+  if (event.target.closest("#addClientButton")) {
+    settings.clients.push(createEmptyClient());
+    pendingClientsDirty = true;
+    renderClients();
+    applyLanguage();
+    showClientsStatus("Новый клиент добавлен. Заполните карточку и нажмите «Сохранить».");
+    return;
+  }
+
+  if (event.target.closest("#saveClientsButton")) {
+    if (!validateClients()) {
+      return;
+    }
+
+    pendingClientsDirty = false;
+    saveSettings();
+    renderClients();
+    applyLanguage();
+    showClientsStatus("Сохранено");
+    return;
+  }
+
   const deleteUserButton = event.target.closest("[data-delete-user-row]");
   if (deleteUserButton) {
     const index = Number(deleteUserButton.dataset.index);
@@ -4051,7 +4288,13 @@ document.addEventListener("click", (event) => {
 });
 
 async function initializeApp() {
-  settings = await loadSettings();
+  try {
+    settings = await loadSettings();
+  } catch (error) {
+    console.error(error);
+    showDatabaseLoadError(error);
+    return;
+  }
 
   if (sessionStorage.getItem(AUTH_STORAGE_KEY) === "true") {
     showDashboard();

@@ -52,6 +52,7 @@
 
       <nav class="tabs" aria-label="Разделы калькулятора">
         <button type="button" class="tab-button is-active" data-tab="order">Расчет цены</button>
+        <button type="button" class="tab-button" data-tab="clients" data-admin-seller-only>Клиенты</button>
         <button type="button" class="tab-button" data-tab="settings" data-admin-only>Формулы и коэффициенты</button>
         <button type="button" class="tab-button" data-tab="users" data-admin-only>Пользователи</button>
       </nav>
@@ -1033,6 +1034,24 @@
             </div>
           </section>
         </div>
+      </section>
+
+      <section class="tab-panel is-hidden" id="clientsPanel">
+        <div class="panel-header">
+          <div>
+            <p class="eyebrow">База клиентов</p>
+            <h2>Клиенты</h2>
+          </div>
+          <button type="button" class="add-action" id="addClientButton">+</button>
+        </div>
+
+        <section class="data-section">
+          <div class="clients-grid" id="clientsGrid"></div>
+          <div class="section-actions">
+            <button type="button" class="save-action" id="saveClientsButton">Сохранить</button>
+            <span class="save-status" id="clientsSaveStatus" aria-live="polite"></span>
+          </div>
+        </section>
       </section>
 
       <section class="tab-panel is-hidden" id="usersPanel">

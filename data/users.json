@@ -1,0 +1,38 @@
+{
+  "users": [
+    {
+      "firstName": "Maksym",
+      "lastName": "Khodus",
+      "role": "admin",
+      "login": "maksym",
+      "password": "admin2026"
+    },
+    {
+      "firstName": "Viia",
+      "lastName": "Eller",
+      "role": "seller",
+      "login": "viia",
+      "password": "viia2026"
+    }
+  ],
+  "access": {
+    "roles": [
+      {
+        "id": "admin",
+        "label": "Администратор"
+      },
+      {
+        "id": "lead",
+        "label": "Главный пользователь"
+      },
+      {
+        "id": "seller",
+        "label": "Продавец"
+      },
+      {
+        "id": "user",
+        "label": "Пользователь"
+      }
+    ]
+  }
+}

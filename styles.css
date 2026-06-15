@@ -481,6 +481,43 @@ dd {
   border-radius: 8px;
 }
 
+.clients-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.client-card {
+  display: grid;
+  gap: 14px;
+  padding: 16px;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+
+.client-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.client-card-title {
+  margin: 0;
+  font-size: 16px;
+}
+
+.client-fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.client-fields .full-span {
+  grid-column: 1 / -1;
+}
+
 .section-heading {
   display: flex;
   align-items: baseline;
@@ -747,6 +784,11 @@ tr:last-child td {
 
   .workspace-grid,
   .calc-form {
+    grid-template-columns: 1fr;
+  }
+
+  .clients-grid,
+  .client-fields {
     grid-template-columns: 1fr;
   }
 
