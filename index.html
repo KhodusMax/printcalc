@@ -52,9 +52,9 @@
 
       <nav class="tabs" aria-label="Разделы калькулятора">
         <button type="button" class="tab-button is-active" data-tab="order">Расчет цены</button>
-        <button type="button" class="tab-button" data-tab="clients" data-admin-seller-only>Клиенты</button>
-        <button type="button" class="tab-button" data-tab="settings" data-admin-only>Формулы и коэффициенты</button>
-        <button type="button" class="tab-button" data-tab="users" data-admin-only>Пользователи</button>
+        <button type="button" class="tab-button" data-tab="clients">Клиенты</button>
+        <button type="button" class="tab-button" data-tab="settings">Формулы и коэффициенты</button>
+        <button type="button" class="tab-button" data-tab="users">Пользователи</button>
       </nav>
 
       <section class="tab-panel" id="orderPanel">
@@ -1060,10 +1060,37 @@
             <p class="eyebrow">Доступ к системе</p>
             <h2>Пользователи</h2>
           </div>
-          <button type="button" class="add-action" id="addUserButton">+</button>
         </div>
 
-        <section class="data-section">
+        <nav class="subtabs" id="userAdminTabs" aria-label="Разделы пользователей"></nav>
+
+        <section class="data-section" data-user-admin-panel="roles">
+          <div class="section-heading">
+            <h3>Категории пользователей</h3>
+            <button type="button" class="add-action" id="addRoleButton">+</button>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Название категории</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="rolesTable"></tbody>
+            </table>
+          </div>
+          <div class="section-actions">
+            <button type="button" class="save-action" id="saveRolesButton">Сохранить</button>
+            <span class="save-status" id="rolesSaveStatus" aria-live="polite"></span>
+          </div>
+        </section>
+
+        <section class="data-section is-hidden" data-user-admin-panel="users">
+          <div class="section-heading">
+            <h3>Созданные пользователи</h3>
+            <button type="button" class="add-action" id="addUserButton">+</button>
+          </div>
           <div class="table-wrap">
             <table>
               <thead>
@@ -1084,6 +1111,17 @@
             <button type="button" class="save-action" id="saveUsersButton">Сохранить</button>
             <button type="button" class="undo-delete-action is-hidden" id="undoUserDeleteButton">Отменить удаление</button>
             <span class="save-status" id="usersSaveStatus" aria-live="polite"></span>
+          </div>
+        </section>
+
+        <section class="data-section is-hidden" data-user-admin-panel="permissions">
+          <div class="section-heading">
+            <h3>Права доступа</h3>
+          </div>
+          <div class="permissions-grid" id="permissionsGrid"></div>
+          <div class="section-actions">
+            <button type="button" class="save-action" id="savePermissionsButton">Сохранить</button>
+            <span class="save-status" id="permissionsSaveStatus" aria-live="polite"></span>
           </div>
         </section>
       </section>

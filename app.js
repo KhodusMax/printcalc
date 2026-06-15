@@ -63,6 +63,61 @@ const USER_ROLES = [
   { id: "seller", label: "Продавец" },
   { id: "user", label: "Пользователь" }
 ];
+const USER_ADMIN_TABS = [
+  { id: "users", label: "Пользователи" },
+  { id: "roles", label: "Категории пользователей" },
+  { id: "permissions", label: "Права доступа" }
+];
+
+function getAccessPermissionDefinitions() {
+  return [
+    { key: "order", label: "Раздел расчетов цены", group: "Разрешения" },
+    { key: "clients", label: "Раздел клиентов", group: "Разрешения" },
+    { key: "users", label: "Панель пользователей", group: "Разрешения" },
+    { key: "settings", label: "Раздел формул и коэффициентов", group: "Разрешения" },
+    ...DIGITAL_SETTINGS_TABS.map((tab) => ({
+      key: `settings.digital.${tab.id}`,
+      label: tab.label,
+      group: "Настройки цифровой печати"
+    })),
+    ...WIDE_ROLL_SETTINGS_TABS.map((tab) => ({
+      key: `settings.wide.${tab.id}`,
+      label: tab.label,
+      group: "Настройки широкоформатной печати"
+    })),
+    ...CLOTHES_SETTINGS_TABS.map((tab) => ({
+      key: `settings.clothes.${tab.id}`,
+      label: tab.label,
+      group: "Настройки печати на одежде"
+    }))
+  ];
+}
+
+function createAllPermissions(value = true) {
+  return getAccessPermissionDefinitions().reduce((permissions, definition) => {
+    permissions[definition.key] = value;
+    return permissions;
+  }, {});
+}
+
+function createDefaultAccessPermissions() {
+  return {
+    admin: createAllPermissions(true),
+    lead: {
+      ...createAllPermissions(false),
+      order: true
+    },
+    seller: {
+      ...createAllPermissions(false),
+      order: true,
+      clients: true
+    },
+    user: {
+      ...createAllPermissions(false),
+      order: true
+    }
+  };
+}
 
 const UI_TRANSLATIONS = {
   "Внутренний калькулятор стоимости продукции": "Internal product cost calculator",
@@ -74,6 +129,25 @@ const UI_TRANSLATIONS = {
   "Расчет цены": "Price calculation",
   "Формулы и коэффициенты": "Formulas and coefficients",
   "Пользователи": "Users",
+  "Категории пользователей": "User categories",
+  "Созданные пользователи": "Created users",
+  "Права доступа": "Access permissions",
+  "Название категории": "Category name",
+  "Разрешения": "Permissions",
+  "Доступно": "Available",
+  "Недоступно": "Unavailable",
+  "Панель пользователей": "Users panel",
+  "Раздел расчетов цены": "Price calculation section",
+  "Раздел клиентов": "Clients section",
+  "Раздел формул и коэффициентов": "Formulas and coefficients section",
+  "Настройки цифровой печати": "Digital printing settings",
+  "Настройки широкоформатной печати": "Wide-format printing settings",
+  "Настройки печати на одежде": "Apparel printing settings",
+  "Новая категория добавлена. Заполните название и нажмите «Сохранить».": "New category added. Fill in the name and click Save.",
+  "Категория удалена. Нажмите «Сохранить».": "Category deleted. Click Save.",
+  "Заполните название каждой категории.": "Fill in every category name.",
+  "В приложении должна остаться категория администратора.": "The administrator category must remain in the app.",
+  "Нельзя удалить категорию, назначенную пользователям.": "Cannot delete a category assigned to users.",
   "Клиенты": "Clients",
   "База клиентов": "Client database",
   "Юридическое название": "Legal name",
@@ -289,6 +363,25 @@ const UI_TRANSLATIONS_ET = {
   "Расчет цены": "Hinna arvutus",
   "Формулы и коэффициенты": "Valemid ja koefitsiendid",
   "Пользователи": "Kasutajad",
+  "Категории пользователей": "Kasutajakategooriad",
+  "Созданные пользователи": "Loodud kasutajad",
+  "Права доступа": "Ligipääsuõigused",
+  "Название категории": "Kategooria nimi",
+  "Разрешения": "Õigused",
+  "Доступно": "Saadaval",
+  "Недоступно": "Pole saadaval",
+  "Панель пользователей": "Kasutajate paneel",
+  "Раздел расчетов цены": "Hinna arvutuse jaotis",
+  "Раздел клиентов": "Klientide jaotis",
+  "Раздел формул и коэффициентов": "Valemite ja koefitsientide jaotis",
+  "Настройки цифровой печати": "Digitrüki seaded",
+  "Настройки широкоформатной печати": "Laiformaadilise trükkimise seaded",
+  "Настройки печати на одежде": "Rõivastele ja tekstiilile trükkimise seaded",
+  "Новая категория добавлена. Заполните название и нажмите «Сохранить».": "Uus kategooria lisatud. Täida nimi ja vajuta Salvesta.",
+  "Категория удалена. Нажмите «Сохранить».": "Kategooria kustutatud. Vajuta Salvesta.",
+  "Заполните название каждой категории.": "Sisesta iga kategooria nimi.",
+  "В приложении должна остаться категория администратора.": "Administraatori kategooria peab rakendusse alles jääma.",
+  "Нельзя удалить категорию, назначенную пользователям.": "Kasutajatele määratud kategooriat ei saa kustutada.",
   "Клиенты": "Kliendid",
   "База клиентов": "Kliendibaas",
   "Юридическое название": "Ametlik ärinimi",
@@ -497,7 +590,8 @@ const defaults = {
     { firstName: "Максим", lastName: "Ходус", role: "admin", login: ADMIN_LOGIN, password: ADMIN_PASSWORD }
   ],
   access: {
-    roles: USER_ROLES
+    roles: USER_ROLES,
+    permissions: createDefaultAccessPermissions()
   },
   clients: [],
   products: [
@@ -603,6 +697,7 @@ let activeDepartment = DEPARTMENTS[0].label;
 let activeDigitalSettingsTab = DIGITAL_SETTINGS_TABS[0].id;
 let activeWideSettingsTab = WIDE_ROLL_SETTINGS_TABS[0].id;
 let activeClothesSettingsTab = CLOTHES_SETTINGS_TABS[0].id;
+let activeUserAdminTab = USER_ADMIN_TABS[0].id;
 const pendingDigitalDeletes = {
   standardProducts: new Set(),
   materials: new Set(),
@@ -712,10 +807,18 @@ const wideSettingsSheetMode = document.querySelector("#wideSettingsSheetMode");
 const clothesSettings = document.querySelector("#clothesSettings");
 const clothesSettingsTabs = document.querySelector("#clothesSettingsTabs");
 const usersTable = document.querySelector("#usersTable");
+const userAdminTabs = document.querySelector("#userAdminTabs");
+const rolesTable = document.querySelector("#rolesTable");
+const addRoleButton = document.querySelector("#addRoleButton");
+const saveRolesButton = document.querySelector("#saveRolesButton");
+const rolesSaveStatus = document.querySelector("#rolesSaveStatus");
 const addUserButton = document.querySelector("#addUserButton");
 const saveUsersButton = document.querySelector("#saveUsersButton");
 const undoUserDeleteButton = document.querySelector("#undoUserDeleteButton");
 const usersSaveStatus = document.querySelector("#usersSaveStatus");
+const permissionsGrid = document.querySelector("#permissionsGrid");
+const savePermissionsButton = document.querySelector("#savePermissionsButton");
+const permissionsSaveStatus = document.querySelector("#permissionsSaveStatus");
 const clientsGrid = document.querySelector("#clientsGrid");
 const addClientButton = document.querySelector("#addClientButton");
 const saveClientsButton = document.querySelector("#saveClientsButton");
@@ -1184,6 +1287,33 @@ function normalizeSettings(savedSettings) {
   };
   normalized.clothesPrint.clientTypes.b2bPercent = Number(normalized.clothesPrint.clientTypes.b2bPercent) || 0;
   normalized.clothesPrint.clientTypes.b2cPercent = Number(normalized.clothesPrint.clientTypes.b2cPercent) || 0;
+  normalized.access = {
+    ...structuredClone(defaults.access),
+    ...(normalized.access || {})
+  };
+  normalized.access.roles = Array.isArray(normalized.access.roles) && normalized.access.roles.length > 0
+    ? normalized.access.roles.map((role) => ({
+      id: role.id || "user",
+      label: role.label || "Пользователь"
+    }))
+    : structuredClone(defaults.access.roles);
+  if (!normalized.access.roles.some((role) => role.id === "admin")) {
+    normalized.access.roles.unshift({ id: "admin", label: "Администратор" });
+  }
+  const validRoleIds = new Set(normalized.access.roles.map((role) => role.id));
+  const defaultPermissions = createDefaultAccessPermissions();
+  normalized.access.permissions = {
+    ...structuredClone(defaultPermissions),
+    ...(normalized.access.permissions || {})
+  };
+  normalized.access.roles.forEach((role) => {
+    normalized.access.permissions[role.id] = {
+      ...createAllPermissions(false),
+      ...(defaultPermissions[role.id] || {}),
+      ...(normalized.access.permissions[role.id] || {})
+    };
+  });
+  normalized.access.permissions.admin = createAllPermissions(true);
   const normalizedUsersSource = Array.isArray(normalized.users) ? normalized.users : defaults.users;
   normalized.users = normalizedUsersSource.map((user, index) => {
     const firstName = user.firstName || "";
@@ -1195,7 +1325,7 @@ function normalizeSettings(savedSettings) {
       lastName,
       role: isDefaultAdmin
         ? "admin"
-        : USER_ROLES.some((role) => role.id === user.role) ? user.role : "user",
+        : validRoleIds.has(user.role) ? user.role : "user",
       login: user.login || "",
       password: user.password || ""
     };
@@ -1203,17 +1333,6 @@ function normalizeSettings(savedSettings) {
   if (normalized.users.length === 0) {
     normalized.users = structuredClone(defaults.users);
   }
-  normalized.access = {
-    ...structuredClone(defaults.access),
-    ...(normalized.access || {})
-  };
-  normalized.access.roles = Array.isArray(normalized.access.roles) && normalized.access.roles.length > 0
-    ? normalized.access.roles.map((role) => ({
-      id: role.id || "user",
-      label: role.label || "Пользователь"
-    }))
-    : structuredClone(defaults.access.roles);
-
   const normalizedClientsSource = Array.isArray(normalized.clients) ? normalized.clients : [];
   normalized.clients = normalizedClientsSource.map((client) => ({
     legalName: client.legalName || "",
@@ -1306,6 +1425,32 @@ function getCurrentUser() {
     || defaults.users[0];
 }
 
+function getAccessRoles() {
+  return Array.isArray(settings.access?.roles) && settings.access.roles.length > 0
+    ? settings.access.roles
+    : USER_ROLES;
+}
+
+function getRoleById(roleId) {
+  return getAccessRoles().find((role) => role.id === roleId) || getAccessRoles()[0] || USER_ROLES[0];
+}
+
+function getCurrentUserPermissions() {
+  const user = getCurrentUser();
+  if (user.role === "admin") {
+    return createAllPermissions(true);
+  }
+
+  return {
+    ...createAllPermissions(false),
+    ...(settings.access?.permissions?.[user.role] || {})
+  };
+}
+
+function hasPermission(key) {
+  return Boolean(getCurrentUserPermissions()[key]);
+}
+
 function isCurrentUserAdmin() {
   return getCurrentUser().role === "admin";
 }
@@ -1315,7 +1460,15 @@ function isCurrentUserSeller() {
 }
 
 function canCurrentUserAccessClients() {
-  return isCurrentUserAdmin() || isCurrentUserSeller();
+  return hasPermission("clients");
+}
+
+function canAccessTopLevelTab(tabName) {
+  if (tabName === "order") return hasPermission("order");
+  if (tabName === "clients") return hasPermission("clients");
+  if (tabName === "settings") return hasPermission("settings");
+  if (tabName === "users") return hasPermission("users");
+  return true;
 }
 
 function activateTopLevelTab(tabName) {
@@ -1334,7 +1487,7 @@ function findLoginUser(login, password) {
 
 function updateTopbarUser() {
   const user = getCurrentUser();
-  const role = USER_ROLES.find((item) => item.id === user.role) || USER_ROLES[0];
+  const role = getRoleById(user.role);
   const name = [user.firstName, user.lastName]
     .map((part) => String(part || "").trim())
     .filter(Boolean)
@@ -1345,27 +1498,16 @@ function updateTopbarUser() {
 }
 
 function applyRoleAccess() {
-  const isAdmin = isCurrentUserAdmin();
-  const canAccessClients = canCurrentUserAccessClients();
-
-  document.querySelectorAll("[data-admin-only]").forEach((element) => {
-    element.classList.toggle("is-hidden", !isAdmin);
-    element.toggleAttribute("aria-hidden", !isAdmin);
+  document.querySelectorAll(".tab-button").forEach((button) => {
+    const canAccess = canAccessTopLevelTab(button.dataset.tab);
+    button.classList.toggle("is-hidden", !canAccess);
+    button.toggleAttribute("aria-hidden", !canAccess);
   });
 
-  document.querySelectorAll("[data-admin-seller-only]").forEach((element) => {
-    element.classList.toggle("is-hidden", !canAccessClients);
-    element.toggleAttribute("aria-hidden", !canAccessClients);
-  });
-
-  const activeRestrictedTab = document.querySelector(".tab-button.is-active[data-admin-only]");
-  if (!isAdmin && activeRestrictedTab) {
-    activateTopLevelTab("order");
-  }
-
-  const activeClientTab = document.querySelector(".tab-button.is-active[data-admin-seller-only]");
-  if (!canAccessClients && activeClientTab) {
-    activateTopLevelTab("order");
+  const activeTab = document.querySelector(".tab-button.is-active");
+  if (activeTab && !canAccessTopLevelTab(activeTab.dataset.tab)) {
+    const fallbackTab = ["order", "clients", "settings", "users"].find((tabName) => canAccessTopLevelTab(tabName)) || "order";
+    activateTopLevelTab(fallbackTab);
   }
 }
 
@@ -1376,6 +1518,9 @@ function renderAll() {
   renderDigitalSettingsTabs();
   renderWideSettingsTabs();
   renderClothesSettingsTabs();
+  renderUserAdminTabs();
+  renderRolesTable();
+  renderPermissions();
   renderClients();
   renderUsersTable();
   renderSelectors();
@@ -1383,6 +1528,24 @@ function renderAll() {
   renderOrderLayout();
   calculateOrder();
   applyLanguage();
+}
+
+function renderUserAdminTabs() {
+  if (!userAdminTabs) {
+    return;
+  }
+
+  userAdminTabs.innerHTML = USER_ADMIN_TABS.map((tab) => `
+    <button
+      type="button"
+      class="subtab-button${tab.id === activeUserAdminTab ? " is-active" : ""}"
+      data-user-admin-subtab="${tab.id}"
+    >${tab.label}</button>
+  `).join("");
+
+  document.querySelectorAll("[data-user-admin-panel]").forEach((panel) => {
+    panel.classList.toggle("is-hidden", panel.dataset.userAdminPanel !== activeUserAdminTab);
+  });
 }
 
 function renderCategoryTabs() {
@@ -1399,7 +1562,12 @@ function renderCategoryTabs() {
 }
 
 function renderDigitalSettingsTabs() {
-  digitalSettingsTabs.innerHTML = DIGITAL_SETTINGS_TABS.map((tab) => `
+  const allowedTabs = DIGITAL_SETTINGS_TABS.filter((tab) => hasPermission(`settings.digital.${tab.id}`));
+  if (!allowedTabs.some((tab) => tab.id === activeDigitalSettingsTab)) {
+    activeDigitalSettingsTab = allowedTabs[0]?.id || DIGITAL_SETTINGS_TABS[0].id;
+  }
+
+  digitalSettingsTabs.innerHTML = allowedTabs.map((tab) => `
     <button
       type="button"
       class="subtab-button${tab.id === activeDigitalSettingsTab ? " is-active" : ""}"
@@ -1408,12 +1576,17 @@ function renderDigitalSettingsTabs() {
   `).join("");
 
   document.querySelectorAll("[data-digital-panel]").forEach((panel) => {
-    panel.classList.toggle("is-hidden", panel.dataset.digitalPanel !== activeDigitalSettingsTab);
+    panel.classList.toggle("is-hidden", panel.dataset.digitalPanel !== activeDigitalSettingsTab || !hasPermission(`settings.digital.${panel.dataset.digitalPanel}`));
   });
 }
 
 function renderWideSettingsTabs() {
-  wideSettingsTabs.innerHTML = WIDE_ROLL_SETTINGS_TABS.map((tab) => `
+  const allowedTabs = WIDE_ROLL_SETTINGS_TABS.filter((tab) => hasPermission(`settings.wide.${tab.id}`));
+  if (!allowedTabs.some((tab) => tab.id === activeWideSettingsTab)) {
+    activeWideSettingsTab = allowedTabs[0]?.id || WIDE_ROLL_SETTINGS_TABS[0].id;
+  }
+
+  wideSettingsTabs.innerHTML = allowedTabs.map((tab) => `
     <button
       type="button"
       class="subtab-button${tab.id === activeWideSettingsTab ? " is-active" : ""}"
@@ -1422,12 +1595,17 @@ function renderWideSettingsTabs() {
   `).join("");
 
   document.querySelectorAll("[data-wide-panel]").forEach((panel) => {
-    panel.classList.toggle("is-hidden", panel.dataset.widePanel !== activeWideSettingsTab);
+    panel.classList.toggle("is-hidden", panel.dataset.widePanel !== activeWideSettingsTab || !hasPermission(`settings.wide.${panel.dataset.widePanel}`));
   });
 }
 
 function renderClothesSettingsTabs() {
-  clothesSettingsTabs.innerHTML = CLOTHES_SETTINGS_TABS.map((tab) => `
+  const allowedTabs = CLOTHES_SETTINGS_TABS.filter((tab) => hasPermission(`settings.clothes.${tab.id}`));
+  if (!allowedTabs.some((tab) => tab.id === activeClothesSettingsTab)) {
+    activeClothesSettingsTab = allowedTabs[0]?.id || CLOTHES_SETTINGS_TABS[0].id;
+  }
+
+  clothesSettingsTabs.innerHTML = allowedTabs.map((tab) => `
     <button
       type="button"
       class="subtab-button${tab.id === activeClothesSettingsTab ? " is-active" : ""}"
@@ -1436,7 +1614,7 @@ function renderClothesSettingsTabs() {
   `).join("");
 
   document.querySelectorAll("[data-clothes-panel]").forEach((panel) => {
-    panel.classList.toggle("is-hidden", panel.dataset.clothesPanel !== activeClothesSettingsTab);
+    panel.classList.toggle("is-hidden", panel.dataset.clothesPanel !== activeClothesSettingsTab || !hasPermission(`settings.clothes.${panel.dataset.clothesPanel}`));
   });
 }
 
@@ -2144,6 +2322,98 @@ function showUsersStatus(message, isError = false) {
   usersSaveStatus.classList.toggle("is-error", isError);
 }
 
+function showRolesStatus(message, isError = false) {
+  rolesSaveStatus.textContent = message;
+  rolesSaveStatus.classList.toggle("is-error", isError);
+}
+
+function showPermissionsStatus(message, isError = false) {
+  permissionsSaveStatus.textContent = message;
+  permissionsSaveStatus.classList.toggle("is-error", isError);
+}
+
+function createRoleId() {
+  return `role_${Date.now()}_${Math.random().toString(16).slice(2)}`;
+}
+
+function roleDeleteButton(role) {
+  if (role.id === "admin") {
+    return "";
+  }
+
+  return `
+    <button type="button" class="delete-row-action" data-delete-role="${role.id}" title="Удалить строку">
+      <span aria-hidden="true">×</span>
+    </button>
+  `;
+}
+
+function renderRolesTable() {
+  if (!rolesTable) {
+    return;
+  }
+
+  rolesTable.innerHTML = getAccessRoles().map((role) => `
+    <tr data-role-row="${role.id}">
+      <td><input data-role-field="label" data-role-id="${role.id}" value="${escapeHtml(role.label)}"${role.id === "admin" ? " readonly" : ""}></td>
+      <td class="row-action-cell">${roleDeleteButton(role)}</td>
+    </tr>
+  `).join("");
+}
+
+function validateRoles() {
+  if (!getAccessRoles().some((role) => role.id === "admin")) {
+    showRolesStatus("В приложении должна остаться категория администратора.", true);
+    return false;
+  }
+
+  if (getAccessRoles().some((role) => !String(role.label || "").trim())) {
+    showRolesStatus("Заполните название каждой категории.", true);
+    return false;
+  }
+
+  return true;
+}
+
+function renderPermissions() {
+  if (!permissionsGrid) {
+    return;
+  }
+
+  const definitions = getAccessPermissionDefinitions();
+  const groupedDefinitions = definitions.reduce((groups, definition) => {
+    groups[definition.group] = groups[definition.group] || [];
+    groups[definition.group].push(definition);
+    return groups;
+  }, {});
+
+  permissionsGrid.innerHTML = getAccessRoles().map((role) => {
+    const rolePermissions = role.id === "admin"
+      ? createAllPermissions(true)
+      : {
+        ...createAllPermissions(false),
+        ...(settings.access.permissions?.[role.id] || {})
+      };
+
+    return `
+      <article class="permission-card" data-permission-role="${role.id}">
+        <h4>${escapeHtml(role.label)}</h4>
+        ${Object.entries(groupedDefinitions).map(([group, items]) => `
+          <div class="permission-list">
+            <strong>${group}</strong>
+            ${items.map((item) => `
+              <label class="permission-check">
+                <input type="checkbox" data-permission-role="${role.id}" data-permission-key="${item.key}"${rolePermissions[item.key] ? " checked" : ""}${role.id === "admin" ? " disabled" : ""}>
+                <span>${item.label}</span>
+              </label>
+            `).join("")}
+          </div>
+        `).join("")}
+      </article>
+    `;
+  }).join("");
+}
+
 function getRemainingUsersAfterPendingDeletes() {
   return settings.users.filter((_, index) => !pendingUserDeletes.has(index));
 }
@@ -2194,6 +2464,7 @@ function moveUserRow(fromIndex, toIndex) {
 }
 
 function renderUsersTable() {
+  const roles = getAccessRoles();
   usersTable.innerHTML = settings.users
     .map((user, index) => ({ user, index }))
     .filter(({ index }) => !isPendingUserDeleted(index))
@@ -2204,7 +2475,7 @@ function renderUsersTable() {
         <td><input data-user-field="lastName" data-index="${index}" value="${user.lastName}"></td>
         <td>
           <select data-user-field="role" data-index="${index}">
-            ${USER_ROLES.map((role) => `<option value="${role.id}"${user.role === role.id ? " selected" : ""}>${role.label}</option>`).join("")}
+            ${roles.map((role) => `<option value="${role.id}"${user.role === role.id ? " selected" : ""}>${role.label}</option>`).join("")}
           </select>
         </td>
         <td><input data-user-field="login" data-index="${index}" value="${user.login}"></td>
@@ -3381,12 +3652,7 @@ languageButtons.forEach((button) => {
 
 document.querySelectorAll(".tab-button").forEach((button) => {
   button.addEventListener("click", () => {
-    if (button.hasAttribute("data-admin-only") && !isCurrentUserAdmin()) {
-      activateTopLevelTab("order");
-      return;
-    }
-
-    if (button.hasAttribute("data-admin-seller-only") && !canCurrentUserAccessClients()) {
+    if (!canAccessTopLevelTab(button.dataset.tab)) {
       activateTopLevelTab("order");
       return;
     }
@@ -3629,6 +3895,28 @@ document.addEventListener("input", (event) => {
     settings.clients[index][field] = input.value;
     pendingClientsDirty = true;
     showClientsStatus("");
+    return;
+  }
+
+  if (input.matches("[data-role-field]")) {
+    const role = getAccessRoles().find((item) => item.id === input.dataset.roleId);
+    if (role && role.id !== "admin") {
+      role.label = input.value;
+      renderUsersTable();
+      renderPermissions();
+      showRolesStatus("");
+    }
+    return;
+  }
+
+  if (input.matches("[data-permission-key]")) {
+    const roleId = input.dataset.permissionRole;
+    const key = input.dataset.permissionKey;
+    if (roleId !== "admin") {
+      settings.access.permissions[roleId] = settings.access.permissions[roleId] || createAllPermissions(false);
+      settings.access.permissions[roleId][key] = input.checked;
+      showPermissionsStatus("");
+    }
     return;
   }
 
@@ -4096,6 +4384,70 @@ document.addEventListener("click", (event) => {
     return;
   }
 
+  const userAdminTab = event.target.closest("[data-user-admin-subtab]");
+  if (userAdminTab) {
+    activeUserAdminTab = userAdminTab.dataset.userAdminSubtab;
+    renderUserAdminTabs();
+    return;
+  }
+
+  if (event.target.closest("#addRoleButton")) {
+    const role = { id: createRoleId(), label: "" };
+    settings.access.roles.push(role);
+    settings.access.permissions[role.id] = createAllPermissions(false);
+    renderRolesTable();
+    renderUsersTable();
+    renderPermissions();
+    showRolesStatus("Новая категория добавлена. Заполните название и нажмите «Сохранить».");
+    return;
+  }
+
+  const deleteRoleButton = event.target.closest("[data-delete-role]");
+  if (deleteRoleButton) {
+    const roleId = deleteRoleButton.dataset.deleteRole;
+    if (roleId === "admin") {
+      showRolesStatus("В приложении должна остаться категория администратора.", true);
+      return;
+    }
+    if (settings.users.some((user) => user.role === roleId)) {
+      showRolesStatus("Нельзя удалить категорию, назначенную пользователям.", true);
+      return;
+    }
+
+    settings.access.roles = settings.access.roles.filter((role) => role.id !== roleId);
+    delete settings.access.permissions[roleId];
+    renderRolesTable();
+    renderUsersTable();
+    renderPermissions();
+    showRolesStatus("Категория удалена. Нажмите «Сохранить».", true);
+    return;
+  }
+
+  if (event.target.closest("#saveRolesButton")) {
+    if (!validateRoles()) {
+      return;
+    }
+
+    saveSettings();
+    renderRolesTable();
+    renderUsersTable();
+    renderPermissions();
+    showRolesStatus("Сохранено");
+    return;
+  }
+
+  if (event.target.closest("#savePermissionsButton")) {
+    settings.access.permissions.admin = createAllPermissions(true);
+    saveSettings();
+    applyRoleAccess();
+    renderDigitalSettingsTabs();
+    renderWideSettingsTabs();
+    renderClothesSettingsTabs();
+    renderPermissions();
+    showPermissionsStatus("Сохранено");
+    return;
+  }
+
   if (event.target.closest("#addUserButton")) {
     settings.users.push({ firstName: "", lastName: "", role: "user", login: "", password: "" });
     renderUsersTable();
@@ -4226,6 +4578,9 @@ document.addEventListener("click", (event) => {
 
   const digitalTab = event.target.closest("[data-digital-subtab]");
   if (digitalTab) {
+    if (!hasPermission(`settings.digital.${digitalTab.dataset.digitalSubtab}`)) {
+      return;
+    }
     if (discardPendingDeletesWithWarning() || discardPendingWideDeletesWithWarning() || discardPendingClothesDeletesWithWarning()) {
       return;
     }
@@ -4237,6 +4592,9 @@ document.addEventListener("click", (event) => {
 
   const wideTab = event.target.closest("[data-wide-subtab]");
   if (wideTab) {
+    if (!hasPermission(`settings.wide.${wideTab.dataset.wideSubtab}`)) {
+      return;
+    }
     if (discardPendingWideDeletesWithWarning() || discardPendingClothesDeletesWithWarning()) {
       return;
     }
@@ -4248,6 +4606,9 @@ document.addEventListener("click", (event) => {
 
   const clothesTab = event.target.closest("[data-clothes-subtab]");
   if (clothesTab) {
+    if (!hasPermission(`settings.clothes.${clothesTab.dataset.clothesSubtab}`)) {
+      return;
+    }
     if (discardPendingDeletesWithWarning() || discardPendingWideDeletesWithWarning() || discardPendingClothesDeletesWithWarning()) {
       return;
     }
