@@ -1042,15 +1042,22 @@
             <p class="eyebrow">База клиентов</p>
             <h2>Клиенты</h2>
           </div>
-          <button type="button" class="add-action" id="addClientButton">+</button>
+          <div class="client-header-actions">
+            <button type="button" class="add-action" id="deleteSelectedClientsButton" aria-label="Удалить выбранных клиентов" title="Удалить выбранных клиентов">-</button>
+            <button type="button" class="add-action" id="addClientButton">+</button>
+          </div>
         </div>
 
         <section class="data-section">
           <div class="section-heading">
             <h3>Таблица клиентов</h3>
-            <div class="client-column-menu">
-              <button type="button" class="icon-action" id="clientColumnsButton" aria-expanded="false" aria-label="Колонки таблицы">☰</button>
-              <div class="client-columns-dropdown is-hidden" id="clientColumnsDropdown"></div>
+            <div class="client-table-actions">
+              <button type="button" class="secondary-action" id="importClientsButton">Импортировать</button>
+              <button type="button" class="secondary-action" id="exportClientsButton">Экспортировать</button>
+              <div class="client-column-menu">
+                <button type="button" class="icon-action" id="clientColumnsButton" aria-expanded="false" aria-label="Колонки таблицы">☰</button>
+                <div class="client-columns-dropdown is-hidden" id="clientColumnsDropdown"></div>
+              </div>
             </div>
           </div>
           <div class="table-wrap">
@@ -1134,6 +1141,49 @@
         </section>
       </div>
 
+      <div class="modal-backdrop is-hidden" id="clientImportModal" aria-hidden="true">
+        <section class="modal-dialog" role="dialog" aria-modal="true" aria-labelledby="clientImportModalTitle">
+          <div class="modal-header">
+            <h2 id="clientImportModalTitle">Импорт клиентов</h2>
+            <button type="button" class="ghost-action" id="closeClientImportModalButton">×</button>
+          </div>
+
+          <div class="client-modal-form">
+            <label class="full-span">
+              <span>Файл CSV или XLS</span>
+              <input id="clientImportFileInput" type="file" accept=".csv,.xls,.xlsx,text/csv,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">
+            </label>
+
+            <section class="repeatable-section full-span is-hidden" id="clientImportMappingSection">
+              <div class="section-heading">
+                <h3>Сопоставление колонок</h3>
+              </div>
+              <div class="mapping-grid" id="clientImportMappingGrid"></div>
+              <p class="section-hint" id="clientImportSummary"></p>
+            </section>
+
+            <p class="validation-message full-span" id="clientImportValidation" role="alert"></p>
+          </div>
+
+          <div class="section-actions">
+            <button type="button" class="save-action" id="confirmClientImportButton">Импортировать</button>
+          </div>
+        </section>
+      </div>
+
+      <div class="modal-backdrop is-hidden" id="clientDeleteConfirmModal" aria-hidden="true">
+        <section class="modal-dialog confirm-dialog" role="dialog" aria-modal="true" aria-labelledby="clientDeleteConfirmTitle">
+          <div class="modal-header">
+            <h2 id="clientDeleteConfirmTitle">Подтверждение удаления</h2>
+          </div>
+          <p class="confirm-message" id="clientDeleteConfirmText">Вы действительно хотите удалить выбранных клиентов?</p>
+          <div class="confirm-actions">
+            <button type="button" class="save-action" id="confirmClientDeleteButton">Да</button>
+            <button type="button" class="secondary-action" id="cancelClientDeleteButton">Нет</button>
+          </div>
+        </section>
+      </div>
+
       <section class="tab-panel is-hidden" id="usersPanel">
         <div class="panel-header">
           <div>
@@ -1208,6 +1258,7 @@
     </section>
   </main>
 
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

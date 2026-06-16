@@ -1,0 +1,54 @@
+{
+  "userPreferences": {
+    "maksym": {
+      "language": "et",
+      "topTabOrder": [
+        "clients",
+        "order",
+        "settings",
+        "users"
+      ],
+      "clientsTable": {
+        "visibleColumns": [
+          "name",
+          "type",
+          "registrationNumber",
+          "vatNumber",
+          "contactPersons",
+          "emails",
+          "phones",
+          "address"
+        ],
+        "sort": {
+          "key": "name",
+          "direction": "asc"
+        }
+      }
+    },
+    "viia": {
+      "language": "ru",
+      "topTabOrder": [
+        "clients",
+        "order",
+        "settings",
+        "users"
+      ],
+      "clientsTable": {
+        "visibleColumns": [
+          "name",
+          "type",
+          "registrationNumber",
+          "vatNumber",
+          "contactPersons",
+          "emails",
+          "phones",
+          "address"
+        ],
+        "sort": {
+          "key": "name",
+          "direction": "asc"
+        }
+      }
+    }
+  }
+}

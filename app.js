@@ -1,22 +1,23 @@
 const ADMIN_LOGIN = "maksim.hodus";
 const ADMIN_PASSWORD = "admin2026";
 const STORAGE_KEY = "printcalc-settings-v1";
-const LANGUAGE_STORAGE_KEY = "printcalc-language";
 const AUTH_STORAGE_KEY = "printcalc-authenticated";
 const CURRENT_USER_STORAGE_KEY = "printcalc-current-user-login";
-const TAB_ORDER_STORAGE_KEY = "printcalc-top-tab-order";
-const CLIENT_COLUMNS_STORAGE_KEY = "printcalc-client-columns";
 const SETTINGS_API_URLS = ["/api/settings", "http://127.0.0.1:4174/api/settings"];
 const SPLIT_SETTINGS_FILE_GROUPS = [
   {
     users: "data/users.json",
     clients: "data/clients.json",
-    pricing: "data/pricing.json"
+    clientsArchive: "data/clients-archive.json",
+    pricing: "data/pricing.json",
+    preferences: "data/user-preferences.json"
   },
   {
     users: "/data/users.json",
     clients: "/data/clients.json",
-    pricing: "/data/pricing.json"
+    clientsArchive: "/data/clients-archive.json",
+    pricing: "/data/pricing.json",
+    preferences: "/data/user-preferences.json"
   }
 ];
 const CUSTOM_WIDE_MATERIAL_VALUE = "__custom__";
@@ -79,6 +80,10 @@ const CLIENT_COLUMNS = [
   { key: "emails", label: "Адреса электронной почты" },
   { key: "phones", label: "Телефоны" },
   { key: "address", label: "Адрес клиента" }
+];
+const CLIENT_IMPORT_FIELDS = [
+  { key: "", label: "Не импортировать" },
+  ...CLIENT_COLUMNS
 ];
 
 function getAccessPermissionDefinitions() {
@@ -165,6 +170,27 @@ const UI_TRANSLATIONS = {
   "Юридическое название": "Legal name",
   "Название": "Name",
   "Таблица клиентов": "Clients table",
+  "Импортировать": "Import",
+  "Экспортировать": "Export",
+  "Удалить": "Delete",
+  "Выбрать всех клиентов": "Select all clients",
+  "Выбрать клиента": "Select client",
+  "Удалить выбранных клиентов": "Delete selected clients",
+  "Выберите клиентов для удаления.": "Select clients to delete.",
+  "Удалено клиентов": "Deleted clients",
+  "Подтверждение удаления": "Delete confirmation",
+  "Вы действительно хотите удалить выбранных клиентов?": "Do you really want to delete the selected clients?",
+  "Да": "Yes",
+  "Нет": "No",
+  "Импорт клиентов": "Import clients",
+  "Файл CSV или XLS": "CSV or XLS file",
+  "Сопоставление колонок": "Column mapping",
+  "Не импортировать": "Do not import",
+  "Выберите файл для импорта.": "Select a file to import.",
+  "Не удалось прочитать файл. Для XLS/XLSX нужна загрузка Excel-библиотеки, либо сохраните файл как CSV.": "Could not read the file. XLS/XLSX requires the Excel library to load, or save the file as CSV.",
+  "Сопоставьте колонку с названием клиента.": "Map the client name column.",
+  "Импортировано клиентов": "Imported clients",
+  "Пропущено дублей": "Skipped duplicates",
   "Юрлицо": "Legal entity",
   "Физлицо": "Individual",
   "Адрес клиента": "Client address",
@@ -409,6 +435,27 @@ const UI_TRANSLATIONS_ET = {
   "Юридическое название": "Ametlik ärinimi",
   "Название": "Nimi",
   "Таблица клиентов": "Klientide tabel",
+  "Импортировать": "Impordi",
+  "Экспортировать": "Ekspordi",
+  "Удалить": "Kustuta",
+  "Выбрать всех клиентов": "Vali kõik kliendid",
+  "Выбрать клиента": "Vali klient",
+  "Удалить выбранных клиентов": "Kustuta valitud kliendid",
+  "Выберите клиентов для удаления.": "Vali kustutatavad kliendid.",
+  "Удалено клиентов": "Kustutatud kliente",
+  "Подтверждение удаления": "Kustutamise kinnitus",
+  "Вы действительно хотите удалить выбранных клиентов?": "Kas soovid valitud kliendid kustutada?",
+  "Да": "Jah",
+  "Нет": "Ei",
+  "Импорт клиентов": "Klientide import",
+  "Файл CSV или XLS": "CSV või XLS fail",
+  "Сопоставление колонок": "Veergude vastavus",
+  "Не импортировать": "Ära impordi",
+  "Выберите файл для импорта.": "Vali importimiseks fail.",
+  "Не удалось прочитать файл. Для XLS/XLSX нужна загрузка Excel-библиотеки, либо сохраните файл как CSV.": "Faili ei õnnestunud lugeda. XLS/XLSX jaoks peab Exceli teek laadima või salvesta fail CSV-na.",
+  "Сопоставьте колонку с названием клиента.": "Seo kliendi nime veerg.",
+  "Импортировано клиентов": "Imporditud kliente",
+  "Пропущено дублей": "Vahele jäetud duplikaate",
   "Юрлицо": "Juriidiline isik",
   "Физлицо": "Eraisik",
   "Адрес клиента": "Kliendi aadress",
@@ -621,6 +668,8 @@ const defaults = {
   users: [
     { firstName: "Максим", lastName: "Ходус", role: "admin", login: ADMIN_LOGIN, password: ADMIN_PASSWORD }
   ],
+  clientsArchive: [],
+  userPreferences: {},
   access: {
     roles: USER_ROLES,
     permissions: createDefaultAccessPermissions()
@@ -722,9 +771,7 @@ const defaults = {
 
 let settings = structuredClone(defaults);
 const SUPPORTED_LANGUAGES = ["ru", "en", "et"];
-let currentLanguage = SUPPORTED_LANGUAGES.includes(localStorage.getItem(LANGUAGE_STORAGE_KEY))
-  ? localStorage.getItem(LANGUAGE_STORAGE_KEY)
-  : "ru";
+let currentLanguage = "ru";
 let activeDepartment = DEPARTMENTS[0].label;
 let activeDigitalSettingsTab = DIGITAL_SETTINGS_TABS[0].id;
 let activeWideSettingsTab = WIDE_ROLL_SETTINGS_TABS[0].id;
@@ -735,6 +782,10 @@ let topTabDragJustFinished = false;
 let clientSort = { key: "name", direction: "asc" };
 let editingClientIndex = null;
 let clientDraft = null;
+let selectedClientIndexes = new Set();
+let clientImportRows = [];
+let clientImportHeaders = [];
+let clientImportDuplicates = [];
 const pendingDigitalDeletes = {
   standardProducts: new Set(),
   materials: new Set(),
@@ -861,6 +912,7 @@ const clientColumnsDropdown = document.querySelector("#clientColumnsDropdown");
 const clientsTableHead = document.querySelector("#clientsTableHead");
 const clientsTableBody = document.querySelector("#clientsTableBody");
 const addClientButton = document.querySelector("#addClientButton");
+const deleteSelectedClientsButton = document.querySelector("#deleteSelectedClientsButton");
 const clientsSaveStatus = document.querySelector("#clientsSaveStatus");
 const clientModal = document.querySelector("#clientModal");
 const clientModalTitle = document.querySelector("#clientModalTitle");
@@ -875,6 +927,19 @@ const clientAddressInput = document.querySelector("#clientAddressInput");
 const clientContactPersonsList = document.querySelector("#clientContactPersonsList");
 const clientEmailsList = document.querySelector("#clientEmailsList");
 const clientPhonesList = document.querySelector("#clientPhonesList");
+const importClientsButton = document.querySelector("#importClientsButton");
+const exportClientsButton = document.querySelector("#exportClientsButton");
+const clientImportModal = document.querySelector("#clientImportModal");
+const closeClientImportModalButton = document.querySelector("#closeClientImportModalButton");
+const clientImportFileInput = document.querySelector("#clientImportFileInput");
+const clientImportMappingSection = document.querySelector("#clientImportMappingSection");
+const clientImportMappingGrid = document.querySelector("#clientImportMappingGrid");
+const clientImportSummary = document.querySelector("#clientImportSummary");
+const clientImportValidation = document.querySelector("#clientImportValidation");
+const confirmClientImportButton = document.querySelector("#confirmClientImportButton");
+const clientDeleteConfirmModal = document.querySelector("#clientDeleteConfirmModal");
+const confirmClientDeleteButton = document.querySelector("#confirmClientDeleteButton");
+const cancelClientDeleteButton = document.querySelector("#cancelClientDeleteButton");
 
 const UI_TRANSLATIONS_BY_LANGUAGE = {
   en: UI_TRANSLATIONS,
@@ -1129,7 +1194,8 @@ function scheduleLanguageApply() {
 
 function setLanguage(language) {
   currentLanguage = SUPPORTED_LANGUAGES.includes(language) ? language : "ru";
-  localStorage.setItem(LANGUAGE_STORAGE_KEY, currentLanguage);
+  getCurrentUserPreference().language = currentLanguage;
+  saveCurrentUserPreference();
   renderAll();
   applyLanguage();
 }
@@ -1171,24 +1237,28 @@ async function loadSplitSettingsFromFiles() {
   const errors = [];
   for (const group of SPLIT_SETTINGS_FILE_GROUPS) {
     try {
-      const [usersData, clientsData, pricingData] = await Promise.all([
+      const [usersData, clientsData, clientsArchiveData, pricingData, preferencesData] = await Promise.all([
         loadJsonFile(group.users),
         loadJsonFile(group.clients),
-        loadJsonFile(group.pricing)
+        loadJsonFile(group.clientsArchive),
+        loadJsonFile(group.pricing),
+        loadJsonFile(group.preferences)
       ]);
 
       return {
         ...pricingData,
         users: Array.isArray(usersData.users) ? usersData.users : [],
         access: usersData.access || {},
-        clients: Array.isArray(clientsData.clients) ? clientsData.clients : []
+        clients: Array.isArray(clientsData.clients) ? clientsData.clients : [],
+        clientsArchive: Array.isArray(clientsArchiveData.clients) ? clientsArchiveData.clients : [],
+        userPreferences: preferencesData.userPreferences || {}
       };
     } catch (error) {
       errors.push(error.message);
     }
   }
 
-  throw new Error(`Раздельная база данных недоступна. Проверьте data/users.json, data/clients.json и data/pricing.json. ${errors.join(" ")}`);
+  throw new Error(`Раздельная база данных недоступна. Проверьте data/users.json, data/clients.json, data/clients-archive.json, data/pricing.json и data/user-preferences.json. ${errors.join(" ")}`);
 }
 
 async function loadSettings() {
@@ -1386,7 +1456,8 @@ function normalizeSettings(savedSettings) {
     normalized.users = structuredClone(defaults.users);
   }
   const normalizedClientsSource = Array.isArray(normalized.clients) ? normalized.clients : [];
-  normalized.clients = normalizedClientsSource.map((client) => ({
+  normalized.clients = normalizedClientsSource.map((client, index) => ({
+    clientNumber: client.clientNumber || client.id || String(index + 1).padStart(5, "0"),
     name: client.name || client.legalName || "",
     type: client.type === "natural" ? "natural" : "legal",
     address: client.address || "",
@@ -1396,6 +1467,7 @@ function normalizeSettings(savedSettings) {
     registrationNumber: client.registrationNumber || "",
     vatNumber: client.vatNumber || ""
   }));
+  normalized.userPreferences = normalizeUserPreferences(normalized.userPreferences || {}, normalized.users);
 
   return normalized;
 }
@@ -1450,6 +1522,7 @@ function formatNumber(value) {
 function showDashboard() {
   loginView.classList.add("is-hidden");
   dashboardView.classList.remove("is-hidden");
+  applyCurrentUserPreferences();
   applySavedTopTabOrder();
   document.querySelectorAll(".tab-button").forEach((button) => {
     button.draggable = true;
@@ -1469,7 +1542,7 @@ function showLogin() {
 function showDatabaseLoadError(error) {
   dashboardView.classList.add("is-hidden");
   loginView.classList.remove("is-hidden");
-  loginError.textContent = `Ошибка загрузки базы данных. Проверьте доступ к data/users.json, data/clients.json и data/pricing.json. ${error.message || ""}`.trim();
+  loginError.textContent = `Ошибка загрузки базы данных. Проверьте доступ к data/users.json, data/clients.json, data/pricing.json и data/user-preferences.json. ${error.message || ""}`.trim();
   loginForm.querySelectorAll("input, button").forEach((element) => {
     element.disabled = true;
   });
@@ -1528,29 +1601,90 @@ function canAccessTopLevelTab(tabName) {
   return true;
 }
 
+function getDefaultUserPreference() {
+  return {
+    language: "ru",
+    topTabOrder: ["clients", "order", "settings", "users"],
+    clientsTable: {
+      visibleColumns: CLIENT_COLUMNS.map((column) => column.key),
+      sort: { key: "name", direction: "asc" }
+    }
+  };
+}
+
+function normalizeUserPreferences(preferences, users = []) {
+  const normalized = {};
+  users.forEach((user) => {
+    const login = user.login || "";
+    if (!login) {
+      return;
+    }
+
+    const source = preferences[login] || {};
+    const defaults = getDefaultUserPreference();
+    normalized[login] = {
+      ...defaults,
+      ...source,
+      language: SUPPORTED_LANGUAGES.includes(source.language) ? source.language : defaults.language,
+      topTabOrder: Array.isArray(source.topTabOrder) && source.topTabOrder.length > 0 ? source.topTabOrder : defaults.topTabOrder,
+      clientsTable: {
+        ...defaults.clientsTable,
+        ...(source.clientsTable || {}),
+        visibleColumns: Array.isArray(source.clientsTable?.visibleColumns) && source.clientsTable.visibleColumns.length > 0
+          ? source.clientsTable.visibleColumns
+          : defaults.clientsTable.visibleColumns,
+        sort: {
+          ...defaults.clientsTable.sort,
+          ...(source.clientsTable?.sort || {})
+        }
+      }
+    };
+  });
+
+  return normalized;
+}
+
+function getCurrentUserLogin() {
+  return sessionStorage.getItem(CURRENT_USER_STORAGE_KEY) || getCurrentUser().login || "";
+}
+
+function getCurrentUserPreference() {
+  const login = getCurrentUserLogin();
+  if (!settings.userPreferences[login]) {
+    settings.userPreferences[login] = getDefaultUserPreference();
+  }
+
+  return settings.userPreferences[login];
+}
+
+function saveCurrentUserPreference() {
+  saveSettings();
+}
+
+function applyCurrentUserPreferences() {
+  const preferences = getCurrentUserPreference();
+  currentLanguage = SUPPORTED_LANGUAGES.includes(preferences.language) ? preferences.language : "ru";
+  clientSort = {
+    key: preferences.clientsTable?.sort?.key || "name",
+    direction: preferences.clientsTable?.sort?.direction === "desc" ? "desc" : "asc"
+  };
+}
+
 function getDefaultTopTabOrder() {
   return Array.from(document.querySelectorAll(".tab-button")).map((button) => button.dataset.tab);
 }
 
-function getTopTabOrderStorageKey() {
-  const login = sessionStorage.getItem(CURRENT_USER_STORAGE_KEY) || "anonymous";
-  return `${TAB_ORDER_STORAGE_KEY}:${login}`;
-}
-
 function getSavedTopTabOrder() {
-  try {
-    const saved = JSON.parse(localStorage.getItem(getTopTabOrderStorageKey()) || "[]");
-    const defaultOrder = getDefaultTopTabOrder();
-    const savedValidTabs = Array.isArray(saved) ? saved.filter((tabName) => defaultOrder.includes(tabName)) : [];
-    return [...savedValidTabs, ...defaultOrder.filter((tabName) => !savedValidTabs.includes(tabName))];
-  } catch {
-    return getDefaultTopTabOrder();
-  }
+  const saved = getCurrentUserPreference().topTabOrder || [];
+  const defaultOrder = getDefaultTopTabOrder();
+  const savedValidTabs = Array.isArray(saved) ? saved.filter((tabName) => defaultOrder.includes(tabName)) : [];
+  return [...savedValidTabs, ...defaultOrder.filter((tabName) => !savedValidTabs.includes(tabName))];
 }
 
 function saveTopTabOrder() {
   const order = Array.from(document.querySelectorAll(".tab-button")).map((button) => button.dataset.tab);
-  localStorage.setItem(getTopTabOrderStorageKey(), JSON.stringify(order));
+  getCurrentUserPreference().topTabOrder = order;
+  saveCurrentUserPreference();
 }
 
 function applySavedTopTabOrder() {
@@ -2639,6 +2773,7 @@ function validateUsers() {
 
 function createEmptyClient() {
   return {
+    clientNumber: "",
     name: "",
     type: "legal",
     address: "",
@@ -2664,35 +2799,37 @@ function showClientsStatus(message, isError = false) {
 }
 
 function getVisibleClientColumns() {
-  try {
-    const saved = JSON.parse(localStorage.getItem(CLIENT_COLUMNS_STORAGE_KEY) || "[]");
-    const validKeys = CLIENT_COLUMNS.map((column) => column.key);
-    return Array.isArray(saved) && saved.length > 0
-      ? saved.filter((key) => validKeys.includes(key))
-      : validKeys;
-  } catch {
-    return CLIENT_COLUMNS.map((column) => column.key);
-  }
+  const saved = getCurrentUserPreference().clientsTable?.visibleColumns || [];
+  const validKeys = CLIENT_COLUMNS.map((column) => column.key);
+  return Array.isArray(saved) && saved.length > 0
+    ? saved.filter((key) => validKeys.includes(key))
+    : validKeys;
 }
 
 function saveVisibleClientColumns(keys) {
-  localStorage.setItem(CLIENT_COLUMNS_STORAGE_KEY, JSON.stringify(keys));
+  getCurrentUserPreference().clientsTable.visibleColumns = keys;
+  saveCurrentUserPreference();
 }
 
 function getClientCellValue(client, key) {
-  if (key === "type") return client.type === "natural" ? "Физлицо" : "Юрлицо";
+  if (key === "type") return translateStaticText(client.type === "natural" ? "Физлицо" : "Юрлицо", currentLanguage);
   if (key === "emails") return (client.emails || []).filter(Boolean).join(", ");
   if (key === "contactPersons") return (client.contactPersons || []).filter(Boolean).join(", ");
   if (key === "phones") return (client.phones || []).filter(Boolean).join(", ");
   return client[key] || "";
 }
 
+function getClientSortValue(client, key) {
+  if (key === "type") return client.type || "";
+  return getClientCellValue(client, key);
+}
+
 function getSortedClients() {
   return settings.clients
     .map((client, index) => ({ client, index }))
     .sort((a, b) => {
-      const aValue = String(getClientCellValue(a.client, clientSort.key)).toLocaleLowerCase();
-      const bValue = String(getClientCellValue(b.client, clientSort.key)).toLocaleLowerCase();
+      const aValue = String(getClientSortValue(a.client, clientSort.key)).toLocaleLowerCase();
+      const bValue = String(getClientSortValue(b.client, clientSort.key)).toLocaleLowerCase();
       return aValue.localeCompare(bValue, "ru") * (clientSort.direction === "asc" ? 1 : -1);
     });
 }
@@ -2703,6 +2840,10 @@ function renderClients() {
   }
 
   const visibleColumns = getVisibleClientColumns();
+  const sortedClients = getSortedClients();
+  const visibleClientIndexes = sortedClients.map(({ index }) => index);
+  const allVisibleSelected = visibleClientIndexes.length > 0
+    && visibleClientIndexes.every((index) => selectedClientIndexes.has(index));
   clientColumnsDropdown.innerHTML = CLIENT_COLUMNS.map((column) => `
     <label class="client-column-toggle">
       <input type="checkbox" data-client-column="${column.key}"${visibleColumns.includes(column.key) ? " checked" : ""}>
@@ -2712,6 +2853,9 @@ function renderClients() {
 
   clientsTableHead.innerHTML = `
     <tr>
+      <th class="select-column">
+        <input type="checkbox" id="selectAllClientsCheckbox" ${allVisibleSelected ? "checked" : ""} aria-label="Выбрать всех клиентов">
+      </th>
       ${CLIENT_COLUMNS
         .filter((column) => visibleColumns.includes(column.key))
         .map((column) => `
@@ -2726,18 +2870,21 @@ function renderClients() {
   `;
 
   clientsTableBody.innerHTML = settings.clients.length > 0
-    ? getSortedClients().map(({ client, index }) => `
+    ? sortedClients.map(({ client, index }) => `
       <tr>
+        <td class="select-column">
+          <input type="checkbox" data-select-client="${index}" ${selectedClientIndexes.has(index) ? "checked" : ""} aria-label="Выбрать клиента">
+        </td>
         ${CLIENT_COLUMNS
           .filter((column) => visibleColumns.includes(column.key))
-          .map((column) => `<td data-no-translate>${escapeHtml(getClientCellValue(client, column.key))}</td>`)
+          .map((column) => `<td${column.key === "type" ? "" : " data-no-translate"}>${escapeHtml(getClientCellValue(client, column.key))}</td>`)
           .join("")}
         <td class="row-action-cell">
           <button type="button" class="secondary-action" data-edit-client="${index}">Редактировать</button>
         </td>
       </tr>
     `).join("")
-    : `<tr><td colspan="${visibleColumns.length + 1}">Клиенты пока не добавлены.</td></tr>`;
+    : `<tr><td colspan="${visibleColumns.length + 2}">Клиенты пока не добавлены.</td></tr>`;
 }
 
 function validateClients() {
@@ -2747,6 +2894,42 @@ function validateClients() {
   }
 
   return true;
+}
+
+function openClientDeleteConfirmModal() {
+  if (selectedClientIndexes.size === 0) {
+    showClientsStatus("Выберите клиентов для удаления.", true);
+    return;
+  }
+
+  clientDeleteConfirmModal.classList.remove("is-hidden");
+  clientDeleteConfirmModal.setAttribute("aria-hidden", "false");
+}
+
+function closeClientDeleteConfirmModal() {
+  clientDeleteConfirmModal.classList.add("is-hidden");
+  clientDeleteConfirmModal.setAttribute("aria-hidden", "true");
+}
+
+function deleteSelectedClients() {
+  if (selectedClientIndexes.size === 0) {
+    closeClientDeleteConfirmModal();
+    showClientsStatus("Выберите клиентов для удаления.", true);
+    return;
+  }
+
+  const indexes = Array.from(selectedClientIndexes)
+    .filter((index) => index >= 0 && index < settings.clients.length)
+    .sort((a, b) => b - a);
+  indexes.forEach((index) => {
+    settings.clients.splice(index, 1);
+  });
+  const deletedCount = indexes.length;
+  selectedClientIndexes.clear();
+  saveSettings();
+  renderClients();
+  closeClientDeleteConfirmModal();
+  showClientsStatus(`${translateStaticText("Удалено клиентов", currentLanguage)}: ${deletedCount}.`);
 }
 
 function discardPendingClientsWithWarning() {
@@ -2828,6 +3011,283 @@ function updateClientDraftFromModal() {
   clientDraft.registrationNumber = clientRegistrationInput.value.trim();
   clientDraft.vatNumber = clientVatInput.value.trim();
   clientDraft.address = clientAddressInput.value.trim();
+}
+
+function normalizeClientName(value) {
+  return String(value || "").trim().toLocaleLowerCase();
+}
+
+function normalizeClientKey(value) {
+  return String(value || "").trim().toLocaleLowerCase();
+}
+
+function generateClientId() {
+  const numbers = settings.clients
+    .map((client) => Number(client.clientNumber || client.id || 0))
+    .filter((number) => Number.isFinite(number));
+  return String(Math.max(0, ...numbers) + 1).padStart(5, "0");
+}
+
+function readFileAsText(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result || ""));
+    reader.onerror = reject;
+    reader.readAsText(file, "utf-8");
+  });
+}
+
+function readFileAsArrayBuffer(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = reject;
+    reader.readAsArrayBuffer(file);
+  });
+}
+
+function detectCsvDelimiter(text) {
+  const firstLine = String(text || "").split(/\r?\n/).find((line) => line.trim()) || "";
+  const delimiters = [",", ";", "\t"];
+  return delimiters
+    .map((delimiter) => ({
+      delimiter,
+      count: firstLine.split(delimiter).length - 1
+    }))
+    .sort((a, b) => b.count - a.count)[0]?.delimiter || ",";
+}
+
+function parseCsv(text) {
+  const rows = [];
+  let row = [];
+  let value = "";
+  let inQuotes = false;
+  const delimiter = detectCsvDelimiter(text);
+
+  for (let index = 0; index < text.length; index += 1) {
+    const char = text[index];
+    const nextChar = text[index + 1];
+    if (char === '"' && inQuotes && nextChar === '"') {
+      value += '"';
+      index += 1;
+    } else if (char === '"') {
+      inQuotes = !inQuotes;
+    } else if (char === delimiter && !inQuotes) {
+      row.push(value.trim());
+      value = "";
+    } else if ((char === "\n" || char === "\r") && !inQuotes) {
+      if (char === "\r" && nextChar === "\n") {
+        index += 1;
+      }
+      row.push(value.trim());
+      if (row.some((cell) => cell !== "")) {
+        rows.push(row);
+      }
+      row = [];
+      value = "";
+    } else {
+      value += char;
+    }
+  }
+
+  row.push(value.trim());
+  if (row.some((cell) => cell !== "")) {
+    rows.push(row);
+  }
+
+  return rows;
+}
+
+function rowsToObjects(rows) {
+  const [headers = [], ...dataRows] = rows;
+  const seenHeaders = new Map();
+  clientImportHeaders = headers.map((header, index) => {
+    const baseHeader = String(header || `Колонка ${index + 1}`).trim();
+    const seenCount = seenHeaders.get(baseHeader) || 0;
+    seenHeaders.set(baseHeader, seenCount + 1);
+    return seenCount > 0 ? `${baseHeader} (${seenCount + 1})` : baseHeader;
+  });
+  clientImportRows = dataRows
+    .filter((row) => row.some((cell) => String(cell || "").trim()))
+    .map((row) => {
+      return Object.fromEntries(clientImportHeaders.map((header, index) => [header, row[index] || ""]));
+    });
+}
+
+async function parseClientImportFile(file) {
+  const extension = file.name.split(".").pop().toLowerCase();
+  if (extension === "csv") {
+    rowsToObjects(parseCsv(await readFileAsText(file)));
+    return;
+  }
+
+  if (!window.XLSX) {
+    throw new Error("Не удалось прочитать файл. Для XLS/XLSX нужна загрузка Excel-библиотеки, либо сохраните файл как CSV.");
+  }
+
+  const workbook = window.XLSX.read(await readFileAsArrayBuffer(file), { type: "array" });
+  const sheet = workbook.Sheets[workbook.SheetNames[0]];
+  rowsToObjects(window.XLSX.utils.sheet_to_json(sheet, { header: 1, defval: "" }));
+}
+
+function guessClientField(header) {
+  const normalized = String(header || "").toLocaleLowerCase();
+  if (normalized.includes("name") || normalized.includes("nimi") || normalized.includes("назв") || normalized.includes("имя") || normalized.includes("client") || normalized.includes("company")) return "name";
+  if (normalized.includes("type") || normalized.includes("тип")) return "type";
+  if (normalized.includes("reg") || normalized.includes("registr") || normalized.includes("регистрац")) return "registrationNumber";
+  if (normalized.includes("vat") || normalized.includes("kmkr")) return "vatNumber";
+  if (normalized.includes("contact") || normalized.includes("kontakt") || normalized.includes("контакт")) return "contactPersons";
+  if (normalized.includes("mail") || normalized.includes("почт") || normalized.includes("e-post")) return "emails";
+  if (normalized.includes("phone") || normalized.includes("тел") || normalized.includes("telefon")) return "phones";
+  if (normalized.includes("address") || normalized.includes("адрес") || normalized.includes("aadress")) return "address";
+  return "";
+}
+
+function splitImportedMultiValue(value) {
+  return String(value || "")
+    .split(/[\n;,]+/)
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
+function renderClientImportMapping() {
+  clientImportMappingSection.classList.toggle("is-hidden", clientImportHeaders.length === 0);
+  clientImportMappingGrid.innerHTML = clientImportHeaders.map((header) => `
+    <div class="mapping-row">
+      <strong data-no-translate>${escapeHtml(header)}</strong>
+      <select data-import-map="${escapeHtml(header)}">
+        ${CLIENT_IMPORT_FIELDS.map((field) => `<option value="${field.key}"${guessClientField(header) === field.key ? " selected" : ""}>${field.label}</option>`).join("")}
+      </select>
+    </div>
+  `).join("");
+  clientImportSummary.textContent = `${clientImportRows.length} строк готово к проверке.`;
+  clientImportValidation.textContent = "";
+  applyLanguage();
+}
+
+function getClientImportMap() {
+  return Object.fromEntries(
+    Array.from(document.querySelectorAll("[data-import-map]")).map((select) => [select.dataset.importMap, select.value])
+  );
+}
+
+function buildClientFromImportedRow(row, map) {
+  const client = createEmptyClient();
+  Object.entries(map).forEach(([header, field]) => {
+    const value = String(row[header] || "").trim();
+    if (!field || !value) return;
+    if (field === "emails" || field === "contactPersons" || field === "phones") {
+      client[field] = [...client[field].filter(Boolean), ...splitImportedMultiValue(value)];
+    } else if (field === "type") {
+      const normalized = value.toLocaleLowerCase();
+      client.type = normalized.includes("физ")
+        || normalized.includes("person")
+        || normalized.includes("natural")
+        || normalized.includes("individual")
+        || normalized.includes("eraisik")
+        ? "natural"
+        : "legal";
+    } else {
+      client[field] = value;
+    }
+  });
+
+  client.emails = client.emails.filter(Boolean);
+  client.contactPersons = client.contactPersons.filter(Boolean);
+  client.phones = client.phones.filter(Boolean);
+  return client;
+}
+
+function importMappedClients() {
+  const map = getClientImportMap();
+  if (!Object.values(map).includes("name")) {
+    clientImportValidation.textContent = "Сопоставьте колонку с названием клиента.";
+    return;
+  }
+
+  const existingNames = new Set(settings.clients.map((client) => normalizeClientName(client.name)).filter(Boolean));
+  const existingRegistrations = new Set(settings.clients.map((client) => normalizeClientKey(client.registrationNumber)).filter(Boolean));
+  const existingVatNumbers = new Set(settings.clients.map((client) => normalizeClientKey(client.vatNumber)).filter(Boolean));
+  const batchNames = new Set();
+  const batchRegistrations = new Set();
+  const batchVatNumbers = new Set();
+  const imported = [];
+  let nextClientNumber = Number(generateClientId());
+  clientImportDuplicates = [];
+  clientImportRows.forEach((row) => {
+    const client = buildClientFromImportedRow(row, map);
+    const nameKey = normalizeClientName(client.name);
+    const registrationKey = normalizeClientKey(client.registrationNumber);
+    const vatKey = normalizeClientKey(client.vatNumber);
+    const isDuplicate = !nameKey
+      || existingNames.has(nameKey)
+      || batchNames.has(nameKey)
+      || (registrationKey && (existingRegistrations.has(registrationKey) || batchRegistrations.has(registrationKey)))
+      || (vatKey && (existingVatNumbers.has(vatKey) || batchVatNumbers.has(vatKey)));
+
+    if (isDuplicate) {
+      clientImportDuplicates.push(client.name || "(без названия)");
+      return;
+    }
+
+    client.clientNumber = String(nextClientNumber).padStart(5, "0");
+    nextClientNumber += 1;
+    imported.push(client);
+    batchNames.add(nameKey);
+    existingNames.add(nameKey);
+    if (registrationKey) {
+      batchRegistrations.add(registrationKey);
+      existingRegistrations.add(registrationKey);
+    }
+    if (vatKey) {
+      batchVatNumbers.add(vatKey);
+      existingVatNumbers.add(vatKey);
+    }
+  });
+
+  settings.clients.push(...imported);
+  saveSettings();
+  renderClients();
+  closeClientImportModal();
+  const importedLabel = translateStaticText("Импортировано клиентов", currentLanguage);
+  const duplicatesLabel = translateStaticText("Пропущено дублей", currentLanguage);
+  showClientsStatus(`${importedLabel}: ${imported.length}. ${duplicatesLabel}: ${clientImportDuplicates.length}.`);
+}
+
+function openClientImportModal() {
+  clientImportRows = [];
+  clientImportHeaders = [];
+  clientImportDuplicates = [];
+  clientImportFileInput.value = "";
+  clientImportMappingSection.classList.add("is-hidden");
+  clientImportMappingGrid.innerHTML = "";
+  clientImportSummary.textContent = "";
+  clientImportValidation.textContent = "";
+  clientImportModal.classList.remove("is-hidden");
+  clientImportModal.setAttribute("aria-hidden", "false");
+}
+
+function closeClientImportModal() {
+  clientImportModal.classList.add("is-hidden");
+  clientImportModal.setAttribute("aria-hidden", "true");
+}
+
+function exportClientsCsv() {
+  const exportColumns = [
+    { key: "clientNumber", label: "Номер клиента" },
+    ...CLIENT_COLUMNS
+  ];
+  const headers = exportColumns.map((column) => column.label);
+  const rows = settings.clients.map((client) => exportColumns.map((column) => getClientCellValue(client, column.key)));
+  const csv = [headers, ...rows]
+    .map((row) => row.map((cell) => `"${String(cell || "").replaceAll('"', '""')}"`).join(";"))
+    .join("\n");
+  const blob = new Blob([`\ufeff${csv}`], { type: "text/csv;charset=utf-8" });
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = "clients.csv";
+  link.click();
+  URL.revokeObjectURL(link.href);
 }
 
 function createDigitalStandardTier(product) {
@@ -4250,6 +4710,45 @@ document.addEventListener("input", (event) => {
 
 document.addEventListener("change", (event) => {
   const input = event.target;
+  if (input === clientImportFileInput) {
+    const file = clientImportFileInput.files?.[0];
+    if (!file) {
+      return;
+    }
+
+    parseClientImportFile(file)
+      .then(() => renderClientImportMapping())
+      .catch((error) => {
+        clientImportValidation.textContent = error.message || "Не удалось прочитать файл.";
+        clientImportMappingSection.classList.add("is-hidden");
+        clientImportMappingGrid.innerHTML = "";
+      });
+    return;
+  }
+
+  if (input.matches("[data-select-client]")) {
+    const index = Number(input.dataset.selectClient);
+    if (input.checked) {
+      selectedClientIndexes.add(index);
+    } else {
+      selectedClientIndexes.delete(index);
+    }
+    renderClients();
+    return;
+  }
+
+  if (input.matches("#selectAllClientsCheckbox")) {
+    getSortedClients().forEach(({ index }) => {
+      if (input.checked) {
+        selectedClientIndexes.add(index);
+      } else {
+        selectedClientIndexes.delete(index);
+      }
+    });
+    renderClients();
+    return;
+  }
+
   if (input.matches("[data-client-column]")) {
     const selected = Array.from(document.querySelectorAll("[data-client-column]:checked")).map((checkbox) => checkbox.dataset.clientColumn);
     saveVisibleClientColumns(selected.length > 0 ? selected : CLIENT_COLUMNS.map((column) => column.key));
@@ -4762,6 +5261,41 @@ document.addEventListener("click", (event) => {
     return;
   }
 
+  if (event.target.closest("#deleteSelectedClientsButton")) {
+    openClientDeleteConfirmModal();
+    return;
+  }
+
+  if (event.target.closest("#confirmClientDeleteButton")) {
+    deleteSelectedClients();
+    return;
+  }
+
+  if (event.target.closest("#cancelClientDeleteButton") || event.target === clientDeleteConfirmModal) {
+    closeClientDeleteConfirmModal();
+    return;
+  }
+
+  if (event.target.closest("#importClientsButton")) {
+    openClientImportModal();
+    return;
+  }
+
+  if (event.target.closest("#exportClientsButton")) {
+    exportClientsCsv();
+    return;
+  }
+
+  if (event.target.closest("#confirmClientImportButton")) {
+    importMappedClients();
+    return;
+  }
+
+  if (event.target.closest("#closeClientImportModalButton") || event.target === clientImportModal) {
+    closeClientImportModal();
+    return;
+  }
+
   if (event.target.closest("#clientColumnsButton")) {
     const isOpen = !clientColumnsDropdown.classList.contains("is-hidden");
     clientColumnsDropdown.classList.toggle("is-hidden", isOpen);
@@ -4816,6 +5350,8 @@ document.addEventListener("click", (event) => {
       key,
       direction: clientSort.key === key && clientSort.direction === "asc" ? "desc" : "asc"
     };
+    getCurrentUserPreference().clientsTable.sort = clientSort;
+    saveCurrentUserPreference();
     renderClients();
     return;
   }
@@ -4830,8 +5366,10 @@ document.addEventListener("click", (event) => {
     clientDraft.contactPersons = clientDraft.contactPersons.map((item) => item.trim()).filter(Boolean);
     clientDraft.phones = clientDraft.phones.map((item) => item.trim()).filter(Boolean);
     if (editingClientIndex === null) {
+      clientDraft.clientNumber = generateClientId();
       settings.clients.push(clientDraft);
     } else {
+      clientDraft.clientNumber = clientDraft.clientNumber || generateClientId();
       settings.clients[editingClientIndex] = clientDraft;
     }
     saveSettings();

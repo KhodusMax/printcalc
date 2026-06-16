@@ -8,7 +8,9 @@ const DATA_DIR = path.join(ROOT_DIR, "data");
 const LEGACY_SETTINGS_FILE = path.join(DATA_DIR, "settings.json");
 const USERS_FILE = path.join(DATA_DIR, "users.json");
 const CLIENTS_FILE = path.join(DATA_DIR, "clients.json");
+const CLIENTS_ARCHIVE_FILE = path.join(DATA_DIR, "clients-archive.json");
 const PRICING_FILE = path.join(DATA_DIR, "pricing.json");
+const USER_PREFERENCES_FILE = path.join(DATA_DIR, "user-preferences.json");
 
 const MIME_TYPES = {
   ".html": "text/html; charset=utf-8",
@@ -57,28 +59,62 @@ function writeJsonFile(filePath, data) {
   fs.writeFileSync(filePath, `${JSON.stringify(data, null, 2)}\n`, "utf8");
 }
 
+function getClientArchiveKey(client) {
+  const parts = [
+    client.clientNumber || client.id || "",
+    client.registrationNumber || "",
+    client.vatNumber || "",
+    client.name || client.legalName || ""
+  ].map((part) => String(part).trim().toLowerCase());
+
+  return parts.find(Boolean) || "";
+}
+
+function mergeClientsArchive(currentClients = []) {
+  const archiveData = readJsonFile(CLIENTS_ARCHIVE_FILE, { clients: [] });
+  const archivedClients = Array.isArray(archiveData.clients) ? archiveData.clients : [];
+  const archivedKeys = new Set(archivedClients.map(getClientArchiveKey).filter(Boolean));
+  const mergedClients = [...archivedClients];
+
+  currentClients.forEach((client) => {
+    const key = getClientArchiveKey(client);
+    if (!key || archivedKeys.has(key)) {
+      return;
+    }
+
+    mergedClients.push(client);
+    archivedKeys.add(key);
+  });
+
+  writeJsonFile(CLIENTS_ARCHIVE_FILE, { clients: mergedClients });
+}
+
 function splitSettings(settings) {
   const {
     users = [],
     clients = [],
+    clientsArchive = [],
     access = {},
     products = [],
     materials = [],
     finishes = [],
     digitalPrint = {},
     widePrint = {},
-    clothesPrint = {}
+    clothesPrint = {},
+    userPreferences = {}
   } = settings || {};
 
   return {
     usersData: { users, access },
     clientsData: { clients },
-    pricingData: { products, materials, finishes, digitalPrint, widePrint, clothesPrint }
+    clientsArchiveData: { clients: clientsArchive },
+    pricingData: { products, materials, finishes, digitalPrint, widePrint, clothesPrint },
+    userPreferencesData: { userPreferences }
   };
 }
 
 function readSplitSettings() {
-  const requiredFiles = [USERS_FILE, CLIENTS_FILE, PRICING_FILE];
+  const requiredFiles = [USERS_FILE, CLIENTS_FILE, CLIENTS_ARCHIVE_FILE, PRICING_FILE, USER_PREFERENCES_FILE];
   const missingFiles = requiredFiles.filter((filePath) => !fs.existsSync(filePath));
   if (missingFiles.length > 0) {
     throw new Error(`Required database files are missing: ${missingFiles.map((filePath) => path.basename(filePath)).join(", ")}`);
@@ -86,21 +122,27 @@ function readSplitSettings() {
 
   const usersData = readJsonFile(USERS_FILE);
   const clientsData = readJsonFile(CLIENTS_FILE);
+  const clientsArchiveData = readJsonFile(CLIENTS_ARCHIVE_FILE);
   const pricingData = readJsonFile(PRICING_FILE);
+  const userPreferencesData = readJsonFile(USER_PREFERENCES_FILE);
 
   return {
     ...pricingData,
     users: Array.isArray(usersData.users) ? usersData.users : [],
     access: usersData.access || {},
-    clients: Array.isArray(clientsData.clients) ? clientsData.clients : []
+    clients: Array.isArray(clientsData.clients) ? clientsData.clients : [],
+    clientsArchive: Array.isArray(clientsArchiveData.clients) ? clientsArchiveData.clients : [],
+    userPreferences: userPreferencesData.userPreferences || {}
   };
 }
 
 function writeSplitSettings(settings) {
-  const { usersData, clientsData, pricingData } = splitSettings(settings);
+  const { usersData, clientsData, pricingData, userPreferencesData } = splitSettings(settings);
   writeJsonFile(USERS_FILE, usersData);
   writeJsonFile(CLIENTS_FILE, clientsData);
+  mergeClientsArchive(clientsData.clients);
   writeJsonFile(PRICING_FILE, pricingData);
+  writeJsonFile(USER_PREFERENCES_FILE, userPreferencesData);
 }
 
 async function handleSettingsApi(request, response) {
@@ -166,6 +208,8 @@ server.listen(PORT, () => {
   console.log(`PrintCalc server: http://127.0.0.1:${PORT}/`);
   console.log(`Users file: ${USERS_FILE}`);
   console.log(`Clients file: ${CLIENTS_FILE}`);
+  console.log(`Clients archive file: ${CLIENTS_ARCHIVE_FILE}`);
   console.log(`Pricing file: ${PRICING_FILE}`);
+  console.log(`User preferences file: ${USER_PREFERENCES_FILE}`);
   console.log(`Legacy backup: ${LEGACY_SETTINGS_FILE}`);
 });

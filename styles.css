@@ -495,6 +495,33 @@ dd {
   position: relative;
 }
 
+.client-table-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.client-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.select-column {
+  width: 44px;
+  min-width: 44px;
+  max-width: 44px;
+  text-align: center;
+}
+
+.select-column input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+
 .icon-action {
   display: grid;
   width: 38px;
@@ -646,6 +673,38 @@ dd {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 42px;
   gap: 8px;
+}
+
+.mapping-grid {
+  display: grid;
+  gap: 10px;
+}
+
+.mapping-row {
+  display: grid;
+  grid-template-columns: minmax(160px, 0.8fr) minmax(180px, 1fr);
+  align-items: center;
+  gap: 12px;
+}
+
+.mapping-row strong {
+  color: var(--ink);
+}
+
+.confirm-dialog {
+  max-width: 380px;
+}
+
+.confirm-message {
+  margin: 0;
+  color: var(--ink);
+  line-height: 1.45;
+}
+
+.confirm-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
 }
 
 textarea {
@@ -961,8 +1020,14 @@ tr:last-child td {
   }
 
   .permissions-grid,
-  .client-modal-form {
+  .client-modal-form,
+  .mapping-row {
     grid-template-columns: 1fr;
+  }
+
+  .client-table-actions {
+    align-items: stretch;
+    flex-direction: column;
   }
 
   .section-fields {
