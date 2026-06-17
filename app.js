@@ -6,6 +6,7 @@ const CURRENT_USER_STORAGE_KEY = "printcalc-current-user-login";
 const SETTINGS_API_URLS = ["/api/settings", "http://127.0.0.1:4174/api/settings"];
 const SPLIT_SETTINGS_FILE_GROUPS = [
   {
+    system: "data/system.json",
     users: "data/users.json",
     clients: "data/clients.json",
     clientsArchive: "data/clients-archive.json",
@@ -13,6 +14,7 @@ const SPLIT_SETTINGS_FILE_GROUPS = [
     preferences: "data/user-preferences.json"
   },
   {
+    system: "/data/system.json",
     users: "/data/users.json",
     clients: "/data/clients.json",
     clientsArchive: "/data/clients-archive.json",
@@ -61,6 +63,7 @@ const MATERIAL_TYPES = [
   "Специальный материал"
 ];
 const USER_ROLES = [
+  { id: "superadmin", label: "Суперпользователь" },
   { id: "admin", label: "Администратор" },
   { id: "lead", label: "Главный пользователь" },
   { id: "seller", label: "Продавец" },
@@ -70,6 +73,18 @@ const USER_ADMIN_TABS = [
   { id: "users", label: "Пользователи" },
   { id: "roles", label: "Категории пользователей" },
   { id: "permissions", label: "Права доступа" }
+];
+const DEFAULT_TOP_TAB_ORDER = [
+  "dashboard",
+  "clients",
+  "offers",
+  "deals",
+  "order",
+  "calendar",
+  "tasks",
+  "settings",
+  "users",
+  "appSettings"
 ];
 const CLIENT_COLUMNS = [
   { key: "name", label: "Название" },
@@ -119,6 +134,7 @@ function createAllPermissions(value = true) {
 
 function createDefaultAccessPermissions() {
   return {
+    superadmin: createAllPermissions(true),
     admin: createAllPermissions(true),
     lead: {
       ...createAllPermissions(false),
@@ -136,6 +152,50 @@ function createDefaultAccessPermissions() {
   };
 }
 
+function getAppBlockDefinitions() {
+  return [
+    { key: "top.dashboard", label: "Панель управления", group: "Разделы меню" },
+    { key: "top.clients", label: "Клиенты", group: "Разделы меню" },
+    { key: "top.offers", label: "Формирование предложения", group: "Разделы меню" },
+    { key: "top.deals", label: "Заказы", group: "Разделы меню" },
+    { key: "top.order", label: "Расчет цены", group: "Разделы меню" },
+    { key: "top.calendar", label: "Календарь", group: "Разделы меню" },
+    { key: "top.tasks", label: "Задачи", group: "Разделы меню" },
+    { key: "top.settings", label: "Формулы и коэффициенты", group: "Разделы меню" },
+    { key: "top.users", label: "Пользователи", group: "Разделы меню" },
+    ...DIGITAL_SETTINGS_TABS.map((tab) => ({
+      key: `settings.digital.${tab.id}`,
+      label: tab.label,
+      group: "Цифровая печать"
+    })),
+    ...WIDE_ROLL_SETTINGS_TABS.map((tab) => ({
+      key: `settings.wide.${tab.id}`,
+      label: tab.label,
+      group: "Широкоформатная печать / рулонная печать"
+    })),
+    ...CLOTHES_SETTINGS_TABS.map((tab) => ({
+      key: `settings.clothes.${tab.id}`,
+      label: tab.label,
+      group: "Печать на одежде"
+    }))
+  ];
+}
+
+function createDefaultAppConfig() {
+  return {
+    enabledLanguages: {
+      en: true,
+      et: true,
+      ru: true
+    },
+    enabledBlocks: getAppBlockDefinitions().reduce((blocks, definition) => {
+      blocks[definition.key] = true;
+      return blocks;
+    }, {}),
+    maxUsers: 5
+  };
+}
+
 const UI_TRANSLATIONS = {
   "Внутренний калькулятор стоимости продукции": "Internal product cost calculator",
   "Логин": "Login",
@@ -146,6 +206,18 @@ const UI_TRANSLATIONS = {
   "Расчет цены": "Price calculation",
   "Формулы и коэффициенты": "Formulas and coefficients",
   "Пользователи": "Users",
+  "Суперпользователь": "Superuser",
+  "Настройки приложения": "Application settings",
+  "Глобальные настройки": "Global settings",
+  "Языки интерфейса": "Interface languages",
+  "Выключенный язык исчезает из переключателя языков.": "A disabled language disappears from the language switcher.",
+  "Блоки приложения": "Application blocks",
+  "Выключенный блок скрывается в интерфейсе для всех пользователей.": "A disabled block is hidden in the interface for all users.",
+  "Лимит пользователей": "User limit",
+  "Максимальное количество аккаунтов сотрудников фирмы. Суперпользователь в лимит не входит.": "Maximum number of company employee accounts. The superuser is not included in the limit.",
+  "Максимум пользователей": "Maximum users",
+  "Языки": "Languages",
+  "Разделы меню": "Menu sections",
   "Категории пользователей": "User categories",
   "Созданные пользователи": "Created users",
   "Права доступа": "Access permissions",
@@ -170,12 +242,47 @@ const UI_TRANSLATIONS = {
   "Юридическое название": "Legal name",
   "Название": "Name",
   "Таблица клиентов": "Clients table",
+  "Панель управления": "Dashboard",
+  "Сделки": "Deals",
+  "Заказы": "Orders",
+  "Календарь": "Calendar",
+  "Задачи": "Tasks",
+  "Формирование предложения": "Proposal creation",
+  "Обзор системы": "System overview",
+  "Продажи": "Sales",
+  "Планирование": "Planning",
+  "Работа": "Work",
+  "Коммерческие предложения": "Commercial offers",
+  "Раздел в разработке": "Section in development",
+  "Здесь будет общий обзор CRM, быстрые показатели и рабочие уведомления.": "This section will show the CRM overview, quick metrics, and work notifications.",
+  "Здесь будут сделки, статусы предложений и история работы с клиентом.": "This section will contain deals, offer statuses, and client history.",
+  "Здесь будут заказы, статусы предложений и история работы с клиентом.": "This section will contain orders, offer statuses, and client history.",
+  "Здесь будет календарь задач, встреч, дедлайнов и производственных сроков.": "This section will contain tasks, meetings, deadlines, and production dates.",
+  "Здесь будут задачи менеджеров, производство и контроль выполнения.": "This section will contain manager tasks, production work, and completion tracking.",
+  "Здесь будет сбор позиций заказа и подготовка предложения для клиента.": "This section will collect order items and prepare a proposal for the client.",
   "Импортировать": "Import",
   "Экспортировать": "Export",
   "Удалить": "Delete",
   "Выбрать всех клиентов": "Select all clients",
   "Выбрать клиента": "Select client",
   "Удалить выбранных клиентов": "Delete selected clients",
+  "Свернуть меню": "Collapse menu",
+  "Открыть меню": "Open menu",
+  "Настройки пользователя": "User settings",
+  "Имя": "First name",
+  "Фамилия": "Last name",
+  "Новый пароль": "New password",
+  "Изменить пароль": "Change password",
+  "Показать пароль": "Show password",
+  "Скрыть пароль": "Hide password",
+  "Тема": "Theme",
+  "Светлая тема": "Light theme",
+  "Темная тема": "Dark theme",
+  "Системная тема": "System theme",
+  "Заполните имя и фамилию.": "Fill in first and last name.",
+  "Заполните имя, фамилию и логин.": "Fill in first name, last name, and login.",
+  "Такой логин уже используется.": "This login is already used.",
+  "Пользователь не найден.": "User not found.",
   "Выберите клиентов для удаления.": "Select clients to delete.",
   "Удалено клиентов": "Deleted clients",
   "Подтверждение удаления": "Delete confirmation",
@@ -411,6 +518,18 @@ const UI_TRANSLATIONS_ET = {
   "Расчет цены": "Hinna arvutus",
   "Формулы и коэффициенты": "Valemid ja koefitsiendid",
   "Пользователи": "Kasutajad",
+  "Суперпользователь": "Superkasutaja",
+  "Настройки приложения": "Rakenduse seaded",
+  "Глобальные настройки": "Globaalsed seaded",
+  "Языки интерфейса": "Kasutajaliidese keeled",
+  "Выключенный язык исчезает из переключателя языков.": "Väljalülitatud keel kaob keelevalikust.",
+  "Блоки приложения": "Rakenduse plokid",
+  "Выключенный блок скрывается в интерфейсе для всех пользователей.": "Väljalülitatud plokk peidetakse kõigi kasutajate liideses.",
+  "Лимит пользователей": "Kasutajate limiit",
+  "Максимальное количество аккаунтов сотрудников фирмы. Суперпользователь в лимит не входит.": "Ettevõtte töötajate kontode maksimaalne arv. Superkasutaja limiidi sisse ei kuulu.",
+  "Максимум пользователей": "Maksimaalne kasutajate arv",
+  "Языки": "Keeled",
+  "Разделы меню": "Menüü jaotised",
   "Категории пользователей": "Kasutajakategooriad",
   "Созданные пользователи": "Loodud kasutajad",
   "Права доступа": "Ligipääsuõigused",
@@ -435,12 +554,47 @@ const UI_TRANSLATIONS_ET = {
   "Юридическое название": "Ametlik ärinimi",
   "Название": "Nimi",
   "Таблица клиентов": "Klientide tabel",
+  "Панель управления": "Töölaud",
+  "Сделки": "Tehingud",
+  "Заказы": "Tellimused",
+  "Календарь": "Kalender",
+  "Задачи": "Ülesanded",
+  "Формирование предложения": "Pakkumise koostamine",
+  "Обзор системы": "Süsteemi ülevaade",
+  "Продажи": "Müük",
+  "Планирование": "Planeerimine",
+  "Работа": "Töö",
+  "Коммерческие предложения": "Pakkumised",
+  "Раздел в разработке": "Jaotis on arendamisel",
+  "Здесь будет общий обзор CRM, быстрые показатели и рабочие уведомления.": "Siia tuleb CRM-i ülevaade, kiired näitajad ja tööteavitused.",
+  "Здесь будут сделки, статусы предложений и история работы с клиентом.": "Siia tulevad tehingud, pakkumiste staatused ja kliendiajalugu.",
+  "Здесь будут заказы, статусы предложений и история работы с клиентом.": "Siia tulevad tellimused, pakkumiste staatused ja kliendiajalugu.",
+  "Здесь будет календарь задач, встреч, дедлайнов и производственных сроков.": "Siia tuleb ülesannete, kohtumiste, tähtaegade ja tootmisaegade kalender.",
+  "Здесь будут задачи менеджеров, производство и контроль выполнения.": "Siia tulevad müügijuhtide ülesanded, tootmistööd ja täitmise kontroll.",
+  "Здесь будет сбор позиций заказа и подготовка предложения для клиента.": "Siia tuleb tellimuse ridade kogumine ja kliendile pakkumise koostamine.",
   "Импортировать": "Impordi",
   "Экспортировать": "Ekspordi",
   "Удалить": "Kustuta",
   "Выбрать всех клиентов": "Vali kõik kliendid",
   "Выбрать клиента": "Vali klient",
   "Удалить выбранных клиентов": "Kustuta valitud kliendid",
+  "Свернуть меню": "Ahenda menüü",
+  "Открыть меню": "Ava menüü",
+  "Настройки пользователя": "Kasutaja seaded",
+  "Имя": "Eesnimi",
+  "Фамилия": "Perekonnanimi",
+  "Новый пароль": "Uus parool",
+  "Изменить пароль": "Muuda parooli",
+  "Показать пароль": "Näita parooli",
+  "Скрыть пароль": "Peida parool",
+  "Тема": "Teema",
+  "Светлая тема": "Hele teema",
+  "Темная тема": "Tume teema",
+  "Системная тема": "Süsteemi teema",
+  "Заполните имя и фамилию.": "Täida ees- ja perekonnanimi.",
+  "Заполните имя, фамилию и логин.": "Täida eesnimi, perekonnanimi ja kasutajanimi.",
+  "Такой логин уже используется.": "See kasutajanimi on juba kasutusel.",
+  "Пользователь не найден.": "Kasutajat ei leitud.",
   "Выберите клиентов для удаления.": "Vali kustutatavad kliendid.",
   "Удалено клиентов": "Kustutatud kliente",
   "Подтверждение удаления": "Kustutamise kinnitus",
@@ -666,10 +820,14 @@ const UI_TRANSLATIONS_ET = {
 
 const defaults = {
   users: [
-    { firstName: "Максим", lastName: "Ходус", role: "admin", login: ADMIN_LOGIN, password: ADMIN_PASSWORD }
+    { firstName: "Maksym", lastName: "Khodus", role: "admin", login: "maksym", password: "admin2026" }
+  ],
+  superUsers: [
+    { firstName: "super", lastName: "user", role: "superadmin", login: "super", password: "user" }
   ],
   clientsArchive: [],
   userPreferences: {},
+  appConfig: createDefaultAppConfig(),
   access: {
     roles: USER_ROLES,
     permissions: createDefaultAccessPermissions()
@@ -770,8 +928,13 @@ const defaults = {
 };
 
 let settings = structuredClone(defaults);
-const SUPPORTED_LANGUAGES = ["ru", "en", "et"];
-let currentLanguage = "ru";
+const SUPPORTED_LANGUAGES = ["en", "et", "ru"];
+const APP_LANGUAGE_OPTIONS = [
+  { key: "en", label: "EN / English" },
+  { key: "et", label: "ET / Eesti" },
+  { key: "ru", label: "RU / Русский" }
+];
+let currentLanguage = "en";
 let activeDepartment = DEPARTMENTS[0].label;
 let activeDigitalSettingsTab = DIGITAL_SETTINGS_TABS[0].id;
 let activeWideSettingsTab = WIDE_ROLL_SETTINGS_TABS[0].id;
@@ -818,8 +981,25 @@ const loginForm = document.querySelector("#loginForm");
 const loginError = document.querySelector("#loginError");
 const logoutButton = document.querySelector("#logoutButton");
 const languageButtons = document.querySelectorAll("[data-language]");
+const languageMenu = document.querySelector("#languageMenu");
+const languageMenuButton = document.querySelector("#languageMenuButton");
+const languageMenuList = document.querySelector("#languageMenuList");
+const userSettingsButton = document.querySelector("#userSettingsButton");
+const userSettingsModal = document.querySelector("#userSettingsModal");
+const closeUserSettingsModalButton = document.querySelector("#closeUserSettingsModalButton");
+const userSettingsFirstNameInput = document.querySelector("#userSettingsFirstNameInput");
+const userSettingsLastNameInput = document.querySelector("#userSettingsLastNameInput");
+const userSettingsLoginInput = document.querySelector("#userSettingsLoginInput");
+const userSettingsPasswordInput = document.querySelector("#userSettingsPasswordInput");
+const toggleUserSettingsPasswordButton = document.querySelector("#toggleUserSettingsPasswordButton");
+const userSettingsValidation = document.querySelector("#userSettingsValidation");
+const userSettingsStatus = document.querySelector("#userSettingsStatus");
+const saveUserSettingsButton = document.querySelector("#saveUserSettingsButton");
 const topbarUserRole = document.querySelector("#topbarUserRole");
 const topbarUserName = document.querySelector("#topbarUserName");
+const sidebarToggleButton = document.querySelector("#sidebarToggleButton");
+const mobileMenuButton = document.querySelector("#mobileMenuButton");
+const mobileSidebarBackdrop = document.querySelector("#mobileSidebarBackdrop");
 const categorySelect = document.querySelector("#categorySelect");
 const productSelect = document.querySelector("#productSelect");
 const materialSelect = document.querySelector("#materialSelect");
@@ -907,6 +1087,11 @@ const usersSaveStatus = document.querySelector("#usersSaveStatus");
 const permissionsGrid = document.querySelector("#permissionsGrid");
 const savePermissionsButton = document.querySelector("#savePermissionsButton");
 const permissionsSaveStatus = document.querySelector("#permissionsSaveStatus");
+const appLanguageSettingsGrid = document.querySelector("#appLanguageSettingsGrid");
+const appBlockSettingsGrid = document.querySelector("#appBlockSettingsGrid");
+const appMaxUsersInput = document.querySelector("#appMaxUsersInput");
+const saveAppSettingsButton = document.querySelector("#saveAppSettingsButton");
+const appSettingsSaveStatus = document.querySelector("#appSettingsSaveStatus");
 const clientColumnsButton = document.querySelector("#clientColumnsButton");
 const clientColumnsDropdown = document.querySelector("#clientColumnsDropdown");
 const clientsTableHead = document.querySelector("#clientsTableHead");
@@ -1180,7 +1365,135 @@ function applyLanguage() {
     }
   });
 
+  updateLanguageMenu();
+  updatePasswordToggleState();
   isApplyingLanguage = false;
+}
+
+function getLanguageDisplayName(language) {
+  return {
+    ru: "RU",
+    en: "EN",
+    et: "ET"
+  }[language] || "RU";
+}
+
+function updateLanguageMenu() {
+  const enabledLanguages = getEnabledLanguages();
+  if (languageMenuButton) {
+    languageMenuButton.textContent = getLanguageDisplayName(currentLanguage);
+  }
+  document.querySelectorAll(".language-menu-option").forEach((button) => {
+    const isEnabled = enabledLanguages.includes(button.dataset.language);
+    button.classList.toggle("is-hidden", !isEnabled);
+    button.classList.toggle("is-active", button.dataset.language === currentLanguage);
+    button.toggleAttribute("aria-hidden", !isEnabled);
+  });
+  languageButtons.forEach((button) => {
+    const isEnabled = enabledLanguages.includes(button.dataset.language);
+    button.classList.toggle("is-hidden", !isEnabled);
+    button.classList.toggle("is-active", button.dataset.language === currentLanguage);
+    button.toggleAttribute("aria-hidden", !isEnabled);
+  });
+}
+
+function getCurrentUserIndex() {
+  const login = getCurrentUserLogin();
+  return settings.users.findIndex((user) => user.login === login);
+}
+
+function getCurrentSuperUserIndex() {
+  const login = getCurrentUserLogin();
+  return settings.superUsers.findIndex((user) => user.login === login);
+}
+
+function updateThemeOptionCards() {
+  document.querySelectorAll("[data-user-theme-option]").forEach((input) => {
+    input.closest(".theme-option")?.classList.toggle("is-active", input.checked);
+  });
+}
+
+function updatePasswordToggleState() {
+  if (!toggleUserSettingsPasswordButton || !userSettingsPasswordInput) {
+    return;
+  }
+  const isVisible = userSettingsPasswordInput.type === "text";
+  const label = translateStaticText(isVisible ? "Скрыть пароль" : "Показать пароль", currentLanguage);
+  toggleUserSettingsPasswordButton.setAttribute("aria-label", label);
+  toggleUserSettingsPasswordButton.setAttribute("title", label);
+  toggleUserSettingsPasswordButton.classList.toggle("is-active", isVisible);
+}
+
+function renderUserSettingsModal() {
+  const user = getCurrentUser();
+  const preferences = getCurrentUserPreference();
+  userSettingsFirstNameInput.value = user.firstName || "";
+  userSettingsLastNameInput.value = user.lastName || "";
+  userSettingsLoginInput.value = user.login || "";
+  userSettingsPasswordInput.value = "";
+  userSettingsPasswordInput.type = "password";
+  document.querySelectorAll("[data-user-theme-option]").forEach((input) => {
+    input.checked = input.value === (preferences.theme || "light");
+  });
+  updateThemeOptionCards();
+  updatePasswordToggleState();
+  userSettingsValidation.textContent = "";
+  userSettingsStatus.textContent = "";
+  applyLanguage();
+  updatePasswordToggleState();
+}
+
+function openUserSettingsModal() {
+  renderUserSettingsModal();
+  userSettingsModal.classList.remove("is-hidden");
+  userSettingsModal.setAttribute("aria-hidden", "false");
+}
+
+function closeUserSettingsModal() {
+  userSettingsModal.classList.add("is-hidden");
+  userSettingsModal.setAttribute("aria-hidden", "true");
+}
+
+function saveUserSettings() {
+  const userIndex = getCurrentUserIndex();
+  const superUserIndex = getCurrentSuperUserIndex();
+  const isSuperUserProfile = superUserIndex >= 0;
+  if (userIndex < 0 && !isSuperUserProfile) {
+    userSettingsValidation.textContent = translateStaticText("Пользователь не найден.", currentLanguage);
+    return;
+  }
+
+  const firstName = userSettingsFirstNameInput.value.trim();
+  const lastName = userSettingsLastNameInput.value.trim();
+  const login = userSettingsLoginInput.value.trim();
+  if (!firstName || !lastName || !login) {
+    userSettingsValidation.textContent = translateStaticText("Заполните имя, фамилию и логин.", currentLanguage);
+    return;
+  }
+
+  const currentLogin = getCurrentUserLogin();
+  const loginExists = [...settings.superUsers, ...settings.users].some((user) => user.login === login && user.login !== currentLogin);
+  if (loginExists) {
+    userSettingsValidation.textContent = translateStaticText("Такой логин уже используется.", currentLanguage);
+    return;
+  }
+
+  const selectedTheme = document.querySelector("[data-user-theme-option]:checked")?.value || "light";
+  const targetUser = isSuperUserProfile ? settings.superUsers[superUserIndex] : settings.users[userIndex];
+  targetUser.firstName = firstName;
+  targetUser.lastName = lastName;
+  targetUser.login = login;
+  if (userSettingsPasswordInput.value.trim()) {
+    targetUser.password = userSettingsPasswordInput.value;
+  }
+  sessionStorage.setItem(CURRENT_USER_STORAGE_KEY, login);
+  getCurrentUserPreference().theme = selectedTheme;
+  applyTheme(selectedTheme);
+  saveSettings();
+  updateTopbarUser();
+  renderUsersTable();
+  userSettingsValidation.textContent = "";
+  userSettingsStatus.textContent = translateStaticText("Сохранено", currentLanguage);
 }
 
 function scheduleLanguageApply() {
@@ -1193,9 +1506,11 @@ function scheduleLanguageApply() {
 }
 
 function setLanguage(language) {
-  currentLanguage = SUPPORTED_LANGUAGES.includes(language) ? language : "ru";
+  const enabledLanguages = getEnabledLanguages();
+  currentLanguage = enabledLanguages.includes(language) ? language : enabledLanguages[0];
   getCurrentUserPreference().language = currentLanguage;
   saveCurrentUserPreference();
+  updateLanguageMenu();
   renderAll();
   applyLanguage();
 }
@@ -1237,7 +1552,8 @@ async function loadSplitSettingsFromFiles() {
   const errors = [];
   for (const group of SPLIT_SETTINGS_FILE_GROUPS) {
     try {
-      const [usersData, clientsData, clientsArchiveData, pricingData, preferencesData] = await Promise.all([
+      const [systemData, usersData, clientsData, clientsArchiveData, pricingData, preferencesData] = await Promise.all([
+        loadJsonFile(group.system),
         loadJsonFile(group.users),
         loadJsonFile(group.clients),
         loadJsonFile(group.clientsArchive),
@@ -1248,7 +1564,9 @@ async function loadSplitSettingsFromFiles() {
       return {
         ...pricingData,
         users: Array.isArray(usersData.users) ? usersData.users : [],
+        superUsers: Array.isArray(systemData.superUsers) ? systemData.superUsers : [],
         access: usersData.access || {},
+        appConfig: systemData.appConfig || {},
         clients: Array.isArray(clientsData.clients) ? clientsData.clients : [],
         clientsArchive: Array.isArray(clientsArchiveData.clients) ? clientsArchiveData.clients : [],
         userPreferences: preferencesData.userPreferences || {}
@@ -1258,7 +1576,7 @@ async function loadSplitSettingsFromFiles() {
     }
   }
 
-  throw new Error(`Раздельная база данных недоступна. Проверьте data/users.json, data/clients.json, data/clients-archive.json, data/pricing.json и data/user-preferences.json. ${errors.join(" ")}`);
+  throw new Error(`Раздельная база данных недоступна. Проверьте data/system.json, data/users.json, data/clients.json, data/clients-archive.json, data/pricing.json и data/user-preferences.json. ${errors.join(" ")}`);
 }
 
 async function loadSettings() {
@@ -1276,6 +1594,26 @@ async function loadSettings() {
   }
 
   return normalizeSettings(await loadSplitSettingsFromFiles());
+}
+
+function normalizeAppConfig(appConfig = {}) {
+  const defaultsConfig = createDefaultAppConfig();
+  const enabledLanguages = {
+    ...defaultsConfig.enabledLanguages,
+    ...(appConfig.enabledLanguages || {})
+  };
+  if (!SUPPORTED_LANGUAGES.some((language) => enabledLanguages[language])) {
+    enabledLanguages.ru = true;
+  }
+
+  return {
+    enabledLanguages,
+    enabledBlocks: {
+      ...defaultsConfig.enabledBlocks,
+      ...(appConfig.enabledBlocks || {})
+    },
+    maxUsers: Math.max(1, Number(appConfig.maxUsers ?? defaultsConfig.maxUsers ?? 5) || 5)
+  };
 }
 
 function normalizeSettings(savedSettings) {
@@ -1296,6 +1634,30 @@ function normalizeSettings(savedSettings) {
       ...(savedSettings.clothesPrint || {})
     }
   };
+  normalized.appConfig = normalizeAppConfig(savedSettings.appConfig || normalized.appConfig);
+  normalized.superUsers = Array.isArray(normalized.superUsers) && normalized.superUsers.length > 0
+    ? normalized.superUsers.map((user) => ({
+      firstName: user.firstName || "super",
+      lastName: user.lastName || "user",
+      role: "superadmin",
+      login: user.login || "super",
+      password: user.password || "user"
+    }))
+    : structuredClone(defaults.superUsers);
+  const legacySuperUsers = Array.isArray(normalized.users)
+    ? normalized.users.filter((user) => user.role === "superadmin")
+    : [];
+  legacySuperUsers.forEach((user) => {
+    if (!normalized.superUsers.some((superUser) => superUser.login === user.login)) {
+      normalized.superUsers.push({
+        firstName: user.firstName || "super",
+        lastName: user.lastName || "user",
+        role: "superadmin",
+        login: user.login || "super",
+        password: user.password || "user"
+      });
+    }
+  });
 
   normalized.digitalPrint.extraWorks = normalized.digitalPrint.extraWorks.map((work) => ({
     name: work.name || "Untitled",
@@ -1419,6 +1781,9 @@ function normalizeSettings(savedSettings) {
       label: role.label || "Пользователь"
     }))
     : structuredClone(defaults.access.roles);
+  if (!normalized.access.roles.some((role) => role.id === "superadmin")) {
+    normalized.access.roles.unshift({ id: "superadmin", label: "Суперпользователь" });
+  }
   if (!normalized.access.roles.some((role) => role.id === "admin")) {
     normalized.access.roles.unshift({ id: "admin", label: "Администратор" });
   }
@@ -1435,8 +1800,10 @@ function normalizeSettings(savedSettings) {
       ...(normalized.access.permissions[role.id] || {})
     };
   });
+  normalized.access.permissions.superadmin = createAllPermissions(true);
   normalized.access.permissions.admin = createAllPermissions(true);
-  const normalizedUsersSource = Array.isArray(normalized.users) ? normalized.users : defaults.users;
+  const normalizedUsersSource = (Array.isArray(normalized.users) ? normalized.users : defaults.users)
+    .filter((user) => user.role !== "superadmin");
   normalized.users = normalizedUsersSource.map((user, index) => {
     const firstName = user.firstName || "";
     const lastName = user.lastName || "";
@@ -1453,7 +1820,7 @@ function normalizeSettings(savedSettings) {
     };
   });
   if (normalized.users.length === 0) {
-    normalized.users = structuredClone(defaults.users);
+    normalized.users = [];
   }
   const normalizedClientsSource = Array.isArray(normalized.clients) ? normalized.clients : [];
   normalized.clients = normalizedClientsSource.map((client, index) => ({
@@ -1542,7 +1909,7 @@ function showLogin() {
 function showDatabaseLoadError(error) {
   dashboardView.classList.add("is-hidden");
   loginView.classList.remove("is-hidden");
-  loginError.textContent = `Ошибка загрузки базы данных. Проверьте доступ к data/users.json, data/clients.json, data/pricing.json и data/user-preferences.json. ${error.message || ""}`.trim();
+  loginError.textContent = `Ошибка загрузки базы данных. Проверьте доступ к data/system.json, data/users.json, data/clients.json, data/pricing.json и data/user-preferences.json. ${error.message || ""}`.trim();
   loginForm.querySelectorAll("input, button").forEach((element) => {
     element.disabled = true;
   });
@@ -1550,9 +1917,11 @@ function showDatabaseLoadError(error) {
 
 function getCurrentUser() {
   const login = sessionStorage.getItem(CURRENT_USER_STORAGE_KEY);
-  return settings.users.find((user) => user.login === login)
+  return settings.superUsers.find((user) => user.login === login)
+    || settings.users.find((user) => user.login === login)
+    || settings.superUsers[0]
     || settings.users[0]
-    || defaults.users[0];
+    || defaults.superUsers[0];
 }
 
 function getAccessRoles() {
@@ -1561,13 +1930,17 @@ function getAccessRoles() {
     : USER_ROLES;
 }
 
+function getTenantAccessRoles() {
+  return getAccessRoles().filter((role) => role.id !== "superadmin");
+}
+
 function getRoleById(roleId) {
   return getAccessRoles().find((role) => role.id === roleId) || getAccessRoles()[0] || USER_ROLES[0];
 }
 
 function getCurrentUserPermissions() {
   const user = getCurrentUser();
-  if (user.role === "admin") {
+  if (user.role === "superadmin" || user.role === "admin") {
     return createAllPermissions(true);
   }
 
@@ -1582,7 +1955,11 @@ function hasPermission(key) {
 }
 
 function isCurrentUserAdmin() {
-  return getCurrentUser().role === "admin";
+  return getCurrentUser().role === "superadmin" || getCurrentUser().role === "admin";
+}
+
+function isCurrentUserSuperAdmin() {
+  return getCurrentUser().role === "superadmin";
 }
 
 function isCurrentUserSeller() {
@@ -1593,7 +1970,18 @@ function canCurrentUserAccessClients() {
   return hasPermission("clients");
 }
 
+function isAppBlockEnabled(key) {
+  return settings.appConfig?.enabledBlocks?.[key] !== false;
+}
+
+function getEnabledLanguages() {
+  const languages = SUPPORTED_LANGUAGES.filter((language) => settings.appConfig?.enabledLanguages?.[language] !== false);
+  return languages.length > 0 ? languages : ["ru"];
+}
+
 function canAccessTopLevelTab(tabName) {
+  if (tabName === "appSettings") return isCurrentUserSuperAdmin();
+  if (!isAppBlockEnabled(`top.${tabName}`)) return false;
   if (tabName === "order") return hasPermission("order");
   if (tabName === "clients") return hasPermission("clients");
   if (tabName === "settings") return hasPermission("settings");
@@ -1603,8 +1991,9 @@ function canAccessTopLevelTab(tabName) {
 
 function getDefaultUserPreference() {
   return {
-    language: "ru",
-    topTabOrder: ["clients", "order", "settings", "users"],
+    language: "en",
+    theme: "light",
+    topTabOrder: DEFAULT_TOP_TAB_ORDER,
     clientsTable: {
       visibleColumns: CLIENT_COLUMNS.map((column) => column.key),
       sort: { key: "name", direction: "asc" }
@@ -1626,6 +2015,7 @@ function normalizeUserPreferences(preferences, users = []) {
       ...defaults,
       ...source,
       language: SUPPORTED_LANGUAGES.includes(source.language) ? source.language : defaults.language,
+      theme: ["light", "dark", "system"].includes(source.theme) ? source.theme : defaults.theme,
       topTabOrder: Array.isArray(source.topTabOrder) && source.topTabOrder.length > 0 ? source.topTabOrder : defaults.topTabOrder,
       clientsTable: {
         ...defaults.clientsTable,
@@ -1663,20 +2053,51 @@ function saveCurrentUserPreference() {
 
 function applyCurrentUserPreferences() {
   const preferences = getCurrentUserPreference();
-  currentLanguage = SUPPORTED_LANGUAGES.includes(preferences.language) ? preferences.language : "ru";
+  const enabledLanguages = getEnabledLanguages();
+  currentLanguage = enabledLanguages.includes(preferences.language) ? preferences.language : enabledLanguages[0];
+  applyTheme(preferences.theme);
   clientSort = {
     key: preferences.clientsTable?.sort?.key || "name",
     direction: preferences.clientsTable?.sort?.direction === "desc" ? "desc" : "asc"
   };
 }
 
+function applyTheme(theme) {
+  const normalizedTheme = ["light", "dark", "system"].includes(theme) ? theme : "light";
+  document.documentElement.dataset.theme = normalizedTheme;
+}
+
+function toggleSidebarCollapsed() {
+  dashboardView.classList.toggle("is-sidebar-collapsed");
+}
+
+function openMobileSidebar() {
+  dashboardView.classList.add("is-mobile-sidebar-open");
+  mobileSidebarBackdrop?.classList.remove("is-hidden");
+}
+
+function closeMobileSidebar() {
+  dashboardView.classList.remove("is-mobile-sidebar-open");
+  mobileSidebarBackdrop?.classList.add("is-hidden");
+}
+
 function getDefaultTopTabOrder() {
-  return Array.from(document.querySelectorAll(".tab-button")).map((button) => button.dataset.tab);
+  const availableTabs = Array.from(document.querySelectorAll(".tab-button")).map((button) => button.dataset.tab);
+  return [
+    ...DEFAULT_TOP_TAB_ORDER.filter((tabName) => availableTabs.includes(tabName)),
+    ...availableTabs.filter((tabName) => !DEFAULT_TOP_TAB_ORDER.includes(tabName))
+  ];
 }
 
 function getSavedTopTabOrder() {
   const saved = getCurrentUserPreference().topTabOrder || [];
   const defaultOrder = getDefaultTopTabOrder();
+  const savedHasCurrentCrmTabs = DEFAULT_TOP_TAB_ORDER.every((tabName) => saved.includes(tabName));
+  if (!savedHasCurrentCrmTabs) {
+    getCurrentUserPreference().topTabOrder = defaultOrder;
+    saveCurrentUserPreference();
+    return defaultOrder;
+  }
   const savedValidTabs = Array.isArray(saved) ? saved.filter((tabName) => defaultOrder.includes(tabName)) : [];
   return [...savedValidTabs, ...defaultOrder.filter((tabName) => !savedValidTabs.includes(tabName))];
 }
@@ -1736,7 +2157,7 @@ function activateTopLevelTab(tabName) {
 }
 
 function findLoginUser(login, password) {
-  return settings.users.find((item) => item.login === login && item.password === password);
+  return [...settings.superUsers, ...settings.users].find((item) => item.login === login && item.password === password);
 }
 
 function updateTopbarUser() {
@@ -1760,7 +2181,7 @@ function applyRoleAccess() {
 
   const activeTab = document.querySelector(".tab-button.is-active");
   if (activeTab && !canAccessTopLevelTab(activeTab.dataset.tab)) {
-    const fallbackTab = ["order", "clients", "settings", "users"].find((tabName) => canAccessTopLevelTab(tabName)) || "order";
+    const fallbackTab = DEFAULT_TOP_TAB_ORDER.find((tabName) => canAccessTopLevelTab(tabName)) || "dashboard";
     activateTopLevelTab(fallbackTab);
   }
 }
@@ -1775,6 +2196,7 @@ function renderAll() {
   renderUserAdminTabs();
   renderRolesTable();
   renderPermissions();
+  renderAppSettings();
   renderClients();
   renderUsersTable();
   renderSelectors();
@@ -1816,7 +2238,7 @@ function renderCategoryTabs() {
 }
 
 function renderDigitalSettingsTabs() {
-  const allowedTabs = DIGITAL_SETTINGS_TABS.filter((tab) => hasPermission(`settings.digital.${tab.id}`));
+  const allowedTabs = DIGITAL_SETTINGS_TABS.filter((tab) => hasPermission(`settings.digital.${tab.id}`) && isAppBlockEnabled(`settings.digital.${tab.id}`));
   if (!allowedTabs.some((tab) => tab.id === activeDigitalSettingsTab)) {
     activeDigitalSettingsTab = allowedTabs[0]?.id || DIGITAL_SETTINGS_TABS[0].id;
   }
@@ -1830,12 +2252,12 @@ function renderDigitalSettingsTabs() {
   `).join("");
 
   document.querySelectorAll("[data-digital-panel]").forEach((panel) => {
-    panel.classList.toggle("is-hidden", panel.dataset.digitalPanel !== activeDigitalSettingsTab || !hasPermission(`settings.digital.${panel.dataset.digitalPanel}`));
+    panel.classList.toggle("is-hidden", panel.dataset.digitalPanel !== activeDigitalSettingsTab || !hasPermission(`settings.digital.${panel.dataset.digitalPanel}`) || !isAppBlockEnabled(`settings.digital.${panel.dataset.digitalPanel}`));
   });
 }
 
 function renderWideSettingsTabs() {
-  const allowedTabs = WIDE_ROLL_SETTINGS_TABS.filter((tab) => hasPermission(`settings.wide.${tab.id}`));
+  const allowedTabs = WIDE_ROLL_SETTINGS_TABS.filter((tab) => hasPermission(`settings.wide.${tab.id}`) && isAppBlockEnabled(`settings.wide.${tab.id}`));
   if (!allowedTabs.some((tab) => tab.id === activeWideSettingsTab)) {
     activeWideSettingsTab = allowedTabs[0]?.id || WIDE_ROLL_SETTINGS_TABS[0].id;
   }
@@ -1849,12 +2271,12 @@ function renderWideSettingsTabs() {
   `).join("");
 
   document.querySelectorAll("[data-wide-panel]").forEach((panel) => {
-    panel.classList.toggle("is-hidden", panel.dataset.widePanel !== activeWideSettingsTab || !hasPermission(`settings.wide.${panel.dataset.widePanel}`));
+    panel.classList.toggle("is-hidden", panel.dataset.widePanel !== activeWideSettingsTab || !hasPermission(`settings.wide.${panel.dataset.widePanel}`) || !isAppBlockEnabled(`settings.wide.${panel.dataset.widePanel}`));
   });
 }
 
 function renderClothesSettingsTabs() {
-  const allowedTabs = CLOTHES_SETTINGS_TABS.filter((tab) => hasPermission(`settings.clothes.${tab.id}`));
+  const allowedTabs = CLOTHES_SETTINGS_TABS.filter((tab) => hasPermission(`settings.clothes.${tab.id}`) && isAppBlockEnabled(`settings.clothes.${tab.id}`));
   if (!allowedTabs.some((tab) => tab.id === activeClothesSettingsTab)) {
     activeClothesSettingsTab = allowedTabs[0]?.id || CLOTHES_SETTINGS_TABS[0].id;
   }
@@ -1868,7 +2290,7 @@ function renderClothesSettingsTabs() {
   `).join("");
 
   document.querySelectorAll("[data-clothes-panel]").forEach((panel) => {
-    panel.classList.toggle("is-hidden", panel.dataset.clothesPanel !== activeClothesSettingsTab || !hasPermission(`settings.clothes.${panel.dataset.clothesPanel}`));
+    panel.classList.toggle("is-hidden", panel.dataset.clothesPanel !== activeClothesSettingsTab || !hasPermission(`settings.clothes.${panel.dataset.clothesPanel}`) || !isAppBlockEnabled(`settings.clothes.${panel.dataset.clothesPanel}`));
   });
 }
 
@@ -2591,7 +3013,7 @@ function createRoleId() {
 }
 
 function roleDeleteButton(role) {
-  if (role.id === "admin") {
+  if (role.id === "superadmin" || role.id === "admin") {
     return "";
   }
 
@@ -2607,21 +3029,21 @@ function renderRolesTable() {
     return;
   }
 
-  rolesTable.innerHTML = getAccessRoles().map((role) => `
+  rolesTable.innerHTML = getTenantAccessRoles().map((role) => `
     <tr data-role-row="${role.id}">
-      <td><input data-role-field="label" data-role-id="${role.id}" value="${escapeHtml(role.label)}"${role.id === "admin" ? " readonly" : ""}></td>
+      <td><input data-role-field="label" data-role-id="${role.id}" value="${escapeHtml(role.label)}"${role.id === "superadmin" || role.id === "admin" ? " readonly" : ""}></td>
       <td class="row-action-cell">${roleDeleteButton(role)}</td>
     </tr>
   `).join("");
 }
 
 function validateRoles() {
-  if (!getAccessRoles().some((role) => role.id === "admin")) {
+  if (!getTenantAccessRoles().some((role) => role.id === "admin")) {
     showRolesStatus("В приложении должна остаться категория администратора.", true);
     return false;
   }
 
-  if (getAccessRoles().some((role) => !String(role.label || "").trim())) {
+  if (getTenantAccessRoles().some((role) => !String(role.label || "").trim())) {
     showRolesStatus("Заполните название каждой категории.", true);
     return false;
   }
@@ -2641,8 +3063,8 @@ function renderPermissions() {
     return groups;
   }, {});
 
-  permissionsGrid.innerHTML = getAccessRoles().map((role) => {
-    const rolePermissions = role.id === "admin"
+  permissionsGrid.innerHTML = getTenantAccessRoles().map((role) => {
+    const rolePermissions = role.id === "superadmin" || role.id === "admin"
       ? createAllPermissions(true)
       : {
         ...createAllPermissions(false),
@@ -2657,7 +3079,7 @@ function renderPermissions() {
             <strong>${group}</strong>
             ${items.map((item) => `
               <label class="permission-check">
-                <input type="checkbox" data-permission-role="${role.id}" data-permission-key="${item.key}"${rolePermissions[item.key] ? " checked" : ""}${role.id === "admin" ? " disabled" : ""}>
+                <input type="checkbox" data-permission-role="${role.id}" data-permission-key="${item.key}"${rolePermissions[item.key] ? " checked" : ""}${role.id === "superadmin" || role.id === "admin" ? " disabled" : ""}>
                 <span>${item.label}</span>
               </label>
             `).join("")}
@@ -2668,8 +3090,58 @@ function renderPermissions() {
   }).join("");
 }
 
+function renderAppSettings() {
+  if (!appLanguageSettingsGrid || !appBlockSettingsGrid) {
+    return;
+  }
+
+  if (appMaxUsersInput) {
+    appMaxUsersInput.value = settings.appConfig?.maxUsers || 5;
+  }
+
+  const enabledLanguages = settings.appConfig?.enabledLanguages || {};
+  appLanguageSettingsGrid.innerHTML = `
+    <article class="permission-card">
+      <h4>Языки</h4>
+      <div class="permission-list">
+        ${APP_LANGUAGE_OPTIONS.map((language) => `
+          <label class="permission-check">
+            <input type="checkbox" data-app-language="${language.key}"${enabledLanguages[language.key] !== false ? " checked" : ""}>
+            <span>${escapeHtml(language.label)}</span>
+          </label>
+        `).join("")}
+      </div>
+    </article>
+  `;
+
+  const groups = getAppBlockDefinitions().reduce((result, definition) => {
+    result[definition.group] = result[definition.group] || [];
+    result[definition.group].push(definition);
+    return result;
+  }, {});
+  const enabledBlocks = settings.appConfig?.enabledBlocks || {};
+
+  appBlockSettingsGrid.innerHTML = Object.entries(groups).map(([group, items]) => `
+    <article class="permission-card">
+      <h4>${escapeHtml(group)}</h4>
+      <div class="permission-list">
+        ${items.map((item) => `
+          <label class="permission-check">
+            <input type="checkbox" data-app-block="${escapeHtml(item.key)}"${enabledBlocks[item.key] !== false ? " checked" : ""}>
+            <span>${escapeHtml(item.label)}</span>
+          </label>
+        `).join("")}
+      </div>
+    </article>
+  `).join("");
+}
+
 function getRemainingUsersAfterPendingDeletes() {
   return settings.users.filter((_, index) => !pendingUserDeletes.has(index));
+}
+
+function getMaxTenantUsers() {
+  return Math.max(1, Math.floor(Number(settings.appConfig?.maxUsers) || 1));
 }
 
 function hasRemainingAdminAfterPendingDeletes() {
@@ -2718,7 +3190,7 @@ function moveUserRow(fromIndex, toIndex) {
 }
 
 function renderUsersTable() {
-  const roles = getAccessRoles();
+  const roles = getTenantAccessRoles();
   usersTable.innerHTML = settings.users
     .map((user, index) => ({ user, index }))
     .filter(({ index }) => !isPendingUserDeleted(index))
@@ -2749,6 +3221,11 @@ function validateUsers() {
 
   if (!hasRemainingAdminAfterPendingDeletes()) {
     showUsersStatus("В приложении должен остаться хотя бы один администратор.", true);
+    return false;
+  }
+
+  if (remainingUsers.length > getMaxTenantUsers()) {
+    showUsersStatus(`Количество пользователей превышает лимит пакета: ${getMaxTenantUsers()}.`, true);
     return false;
   }
 
@@ -4341,7 +4818,45 @@ logoutButton.addEventListener("click", () => {
 languageButtons.forEach((button) => {
   button.addEventListener("click", () => {
     setLanguage(button.dataset.language);
+    languageMenuList?.classList.add("is-hidden");
+    languageMenuButton?.setAttribute("aria-expanded", "false");
   });
+});
+
+languageMenuButton?.addEventListener("click", () => {
+  const isOpen = !languageMenuList.classList.contains("is-hidden");
+  languageMenuList.classList.toggle("is-hidden", isOpen);
+  languageMenuButton.setAttribute("aria-expanded", String(!isOpen));
+});
+
+userSettingsButton?.addEventListener("click", () => {
+  openUserSettingsModal();
+});
+
+closeUserSettingsModalButton?.addEventListener("click", () => {
+  closeUserSettingsModal();
+});
+
+saveUserSettingsButton?.addEventListener("click", () => {
+  saveUserSettings();
+});
+
+toggleUserSettingsPasswordButton?.addEventListener("click", () => {
+  userSettingsPasswordInput.type = userSettingsPasswordInput.type === "password" ? "text" : "password";
+  updatePasswordToggleState();
+  userSettingsPasswordInput.focus();
+});
+
+sidebarToggleButton?.addEventListener("click", () => {
+  toggleSidebarCollapsed();
+});
+
+mobileMenuButton?.addEventListener("click", () => {
+  openMobileSidebar();
+});
+
+mobileSidebarBackdrop?.addEventListener("click", () => {
+  closeMobileSidebar();
 });
 
 document.querySelectorAll(".tab-button").forEach((button) => {
@@ -4361,6 +4876,7 @@ document.querySelectorAll(".tab-button").forEach((button) => {
     }
 
     activateTopLevelTab(button.dataset.tab);
+    closeMobileSidebar();
   });
 });
 
@@ -4606,7 +5122,7 @@ document.addEventListener("input", (event) => {
 
   if (input.matches("[data-role-field]")) {
     const role = getAccessRoles().find((item) => item.id === input.dataset.roleId);
-    if (role && role.id !== "admin") {
+    if (role && role.id !== "superadmin" && role.id !== "admin") {
       role.label = input.value;
       renderUsersTable();
       renderPermissions();
@@ -4618,7 +5134,7 @@ document.addEventListener("input", (event) => {
   if (input.matches("[data-permission-key]")) {
     const roleId = input.dataset.permissionRole;
     const key = input.dataset.permissionKey;
-    if (roleId !== "admin") {
+    if (roleId !== "superadmin" && roleId !== "admin") {
       settings.access.permissions[roleId] = settings.access.permissions[roleId] || createAllPermissions(false);
       settings.access.permissions[roleId][key] = input.checked;
       showPermissionsStatus("");
@@ -4723,6 +5239,52 @@ document.addEventListener("change", (event) => {
         clientImportMappingSection.classList.add("is-hidden");
         clientImportMappingGrid.innerHTML = "";
       });
+    return;
+  }
+
+  if (input.matches("[data-user-theme-option]")) {
+    document.querySelectorAll("[data-user-theme-option]").forEach((themeInput) => {
+      themeInput.checked = themeInput === input;
+    });
+    if (!input.checked) {
+      input.checked = true;
+    }
+    updateThemeOptionCards();
+    return;
+  }
+
+  if (input.matches("[data-app-language]")) {
+    const language = input.dataset.appLanguage;
+    settings.appConfig.enabledLanguages[language] = input.checked;
+    if (!SUPPORTED_LANGUAGES.some((item) => settings.appConfig.enabledLanguages[item])) {
+      settings.appConfig.enabledLanguages[language] = true;
+      input.checked = true;
+    }
+    if (!getEnabledLanguages().includes(currentLanguage)) {
+      currentLanguage = getEnabledLanguages()[0];
+    }
+    appSettingsSaveStatus.textContent = "";
+    renderAppSettings();
+    updateLanguageMenu();
+    applyLanguage();
+    return;
+  }
+
+  if (input.matches("[data-app-block]")) {
+    settings.appConfig.enabledBlocks[input.dataset.appBlock] = input.checked;
+    appSettingsSaveStatus.textContent = "";
+    applyRoleAccess();
+    renderDigitalSettingsTabs();
+    renderWideSettingsTabs();
+    renderClothesSettingsTabs();
+    renderAppSettings();
+    applyLanguage();
+    return;
+  }
+
+  if (input === appMaxUsersInput) {
+    settings.appConfig.maxUsers = Math.max(1, Math.floor(Number(input.value) || 1));
+    appSettingsSaveStatus.textContent = "";
     return;
   }
 
@@ -5033,6 +5595,11 @@ document.addEventListener("dragend", () => {
 });
 
 document.addEventListener("click", (event) => {
+  if (languageMenuList && !languageMenuList.classList.contains("is-hidden") && !event.target.closest("#languageMenu")) {
+    languageMenuList.classList.add("is-hidden");
+    languageMenuButton?.setAttribute("aria-expanded", "false");
+  }
+
   if (event.target.closest("#addWideSizeRowButton")) {
     wideSizeRowsTable.insertAdjacentHTML("beforeend", createWideSizeRow());
     applyLanguage();
@@ -5206,7 +5773,7 @@ document.addEventListener("click", (event) => {
   const deleteRoleButton = event.target.closest("[data-delete-role]");
   if (deleteRoleButton) {
     const roleId = deleteRoleButton.dataset.deleteRole;
-    if (roleId === "admin") {
+    if (roleId === "superadmin" || roleId === "admin") {
       showRolesStatus("В приложении должна остаться категория администратора.", true);
       return;
     }
@@ -5238,6 +5805,7 @@ document.addEventListener("click", (event) => {
   }
 
   if (event.target.closest("#savePermissionsButton")) {
+    settings.access.permissions.superadmin = createAllPermissions(true);
     settings.access.permissions.admin = createAllPermissions(true);
     saveSettings();
     applyRoleAccess();
@@ -5249,7 +5817,24 @@ document.addEventListener("click", (event) => {
     return;
   }
 
+  if (event.target.closest("#saveAppSettingsButton")) {
+    if (appMaxUsersInput) {
+      settings.appConfig.maxUsers = Math.max(1, Math.floor(Number(appMaxUsersInput.value) || 1));
+    }
+    saveSettings();
+    applyRoleAccess();
+    renderAppSettings();
+    updateLanguageMenu();
+    applyLanguage();
+    appSettingsSaveStatus.textContent = translateStaticText("Сохранено", currentLanguage);
+    return;
+  }
+
   if (event.target.closest("#addUserButton")) {
+    if (getRemainingUsersAfterPendingDeletes().length >= getMaxTenantUsers()) {
+      showUsersStatus(`Достигнут лимит пользователей пакета: ${getMaxTenantUsers()}.`, true);
+      return;
+    }
     settings.users.push({ firstName: "", lastName: "", role: "user", login: "", password: "" });
     renderUsersTable();
     showUsersStatus("Новый пользователь добавлен. Заполните данные и нажмите «Сохранить».");
@@ -5273,6 +5858,11 @@ document.addEventListener("click", (event) => {
 
   if (event.target.closest("#cancelClientDeleteButton") || event.target === clientDeleteConfirmModal) {
     closeClientDeleteConfirmModal();
+    return;
+  }
+
+  if (event.target === userSettingsModal) {
+    closeUserSettingsModal();
     return;
   }
 
@@ -5559,9 +6149,13 @@ async function initializeApp() {
     return;
   }
 
-  if (sessionStorage.getItem(AUTH_STORAGE_KEY) === "true") {
+  const currentLogin = sessionStorage.getItem(CURRENT_USER_STORAGE_KEY);
+  const hasKnownSessionUser = [...settings.superUsers, ...settings.users].some((user) => user.login === currentLogin);
+  if (sessionStorage.getItem(AUTH_STORAGE_KEY) === "true" && hasKnownSessionUser) {
     showDashboard();
   } else {
+    sessionStorage.removeItem(AUTH_STORAGE_KEY);
+    sessionStorage.removeItem(CURRENT_USER_STORAGE_KEY);
     applyLanguage();
   }
 }

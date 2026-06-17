@@ -1,0 +1,50 @@
+{
+  "superUsers": [
+    {
+      "firstName": "super",
+      "lastName": "user",
+      "role": "superadmin",
+      "login": "super",
+      "password": "user"
+    }
+  ],
+  "appConfig": {
+    "enabledLanguages": {
+      "en": true,
+      "et": true,
+      "ru": true
+    },
+    "enabledBlocks": {
+      "top.dashboard": true,
+      "top.clients": true,
+      "top.offers": true,
+      "top.deals": true,
+      "top.order": true,
+      "top.calendar": true,
+      "top.tasks": true,
+      "top.settings": true,
+      "top.users": true,
+      "settings.digital.standard": true,
+      "settings.digital.quantityFormulas": true,
+      "settings.digital.clicks": true,
+      "settings.digital.materials": true,
+      "settings.digital.works": true,
+      "settings.digital.clientTypes": true,
+      "settings.digital.minimumOrder": true,
+      "settings.digital.cuttingCoefficients": true,
+      "settings.wide.rollStandardProducts": true,
+      "settings.wide.rollFormulas": true,
+      "settings.wide.rollInk": true,
+      "settings.wide.rollMaterials": true,
+      "settings.wide.rollExtraWorks": true,
+      "settings.wide.rollClientTypes": true,
+      "settings.wide.rollMinimumOrder": true,
+      "settings.clothes.standardProducts": true,
+      "settings.clothes.quantityFormulas": true,
+      "settings.clothes.carrierTypes": true,
+      "settings.clothes.extraWorks": true,
+      "settings.clothes.clientTypes": true
+    },
+    "maxUsers": 5
+  }
+}

@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="ru">
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -14,9 +14,9 @@
         <h1 id="loginTitle">PrintCalc</h1>
         <p class="muted">Внутренний калькулятор стоимости продукции</p>
         <div class="login-language-switch language-switch" aria-label="Выбор языка">
-          <button type="button" class="language-button" data-language="en">ENG</button>
+          <button type="button" class="language-button" data-language="en">EN</button>
           <button type="button" class="language-button" data-language="et">ET</button>
-          <button type="button" class="language-button" data-language="ru">РУ</button>
+          <button type="button" class="language-button" data-language="ru">RU</button>
         </div>
 
         <form id="loginForm" class="form-grid">
@@ -35,29 +35,118 @@
     </section>
 
     <section class="dashboard-view is-hidden" id="dashboardView">
-      <header class="topbar">
-        <div>
-          <p class="eyebrow" id="topbarUserRole">Администратор</p>
-          <h1 id="topbarUserName" data-no-translate>Максим Ходус</h1>
-        </div>
-        <div class="topbar-actions">
-          <div class="language-switch" aria-label="Выбор языка">
-            <button type="button" class="language-button" data-language="en">ENG</button>
-            <button type="button" class="language-button" data-language="et">ET</button>
-            <button type="button" class="language-button" data-language="ru">РУ</button>
+      <div class="mobile-sidebar-backdrop is-hidden" id="mobileSidebarBackdrop"></div>
+      <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+          <div class="brand-mark sidebar-brand">PC</div>
+          <div class="sidebar-title">
+            <strong>PrintCalc</strong>
+            <span>CRM</span>
           </div>
-          <button type="button" class="ghost-action" id="logoutButton">Выйти</button>
+          <button type="button" class="icon-action sidebar-toggle" id="sidebarToggleButton" aria-label="Свернуть меню" title="Свернуть меню">☰</button>
         </div>
-      </header>
 
-      <nav class="tabs" aria-label="Разделы калькулятора">
-        <button type="button" class="tab-button" data-tab="clients">Клиенты</button>
-        <button type="button" class="tab-button is-active" data-tab="order">Расчет цены</button>
-        <button type="button" class="tab-button" data-tab="settings">Формулы и коэффициенты</button>
-        <button type="button" class="tab-button" data-tab="users">Пользователи</button>
-      </nav>
+        <nav class="tabs" aria-label="Разделы калькулятора">
+          <button type="button" class="tab-button is-active" data-tab="dashboard" title="Панель управления"><span class="tab-icon" aria-hidden="true">▦</span><span class="tab-label">Панель управления</span></button>
+          <button type="button" class="tab-button" data-tab="clients" title="Клиенты"><span class="tab-icon" aria-hidden="true">◎</span><span class="tab-label">Клиенты</span></button>
+          <button type="button" class="tab-button" data-tab="offers" title="Формирование предложения"><span class="tab-icon" aria-hidden="true">✎</span><span class="tab-label">Формирование предложения</span></button>
+          <button type="button" class="tab-button" data-tab="deals" title="Заказы"><span class="tab-icon" aria-hidden="true">▤</span><span class="tab-label">Заказы</span></button>
+          <button type="button" class="tab-button" data-tab="order" title="Расчет цены"><span class="tab-icon" aria-hidden="true">€</span><span class="tab-label">Расчет цены</span></button>
+          <button type="button" class="tab-button" data-tab="calendar" title="Календарь"><span class="tab-icon" aria-hidden="true">◷</span><span class="tab-label">Календарь</span></button>
+          <button type="button" class="tab-button" data-tab="tasks" title="Задачи"><span class="tab-icon" aria-hidden="true">✓</span><span class="tab-label">Задачи</span></button>
+          <button type="button" class="tab-button" data-tab="settings" title="Формулы и коэффициенты"><span class="tab-icon" aria-hidden="true">ƒ</span><span class="tab-label">Формулы и коэффициенты</span></button>
+          <button type="button" class="tab-button" data-tab="users" title="Пользователи"><span class="tab-icon" aria-hidden="true">◉</span><span class="tab-label">Пользователи</span></button>
+          <button type="button" class="tab-button" data-tab="appSettings" title="Настройки приложения"><span class="tab-icon" aria-hidden="true">⚙</span><span class="tab-label">Настройки приложения</span></button>
+        </nav>
+      </aside>
 
-      <section class="tab-panel" id="orderPanel">
+      <div class="main-area">
+        <header class="topbar">
+          <button type="button" class="icon-action mobile-menu-button" id="mobileMenuButton" aria-label="Открыть меню" title="Открыть меню">☰</button>
+          <div class="topbar-user">
+            <p class="eyebrow" id="topbarUserRole">Администратор</p>
+            <h1 id="topbarUserName" data-no-translate>Максим Ходус</h1>
+          </div>
+          <div class="topbar-actions">
+            <div class="language-menu" id="languageMenu">
+              <button type="button" class="language-menu-button" id="languageMenuButton" aria-expanded="false" aria-label="Выбор языка">РУ</button>
+              <div class="language-menu-list is-hidden" id="languageMenuList">
+                <button type="button" class="language-menu-option" data-language="en">EN</button>
+                <button type="button" class="language-menu-option" data-language="et">ET</button>
+                <button type="button" class="language-menu-option" data-language="ru">RU</button>
+              </div>
+            </div>
+            <button type="button" class="icon-action user-settings-button" id="userSettingsButton" aria-label="Настройки пользователя" title="Настройки пользователя">⚙</button>
+            <button type="button" class="ghost-action" id="logoutButton">Выйти</button>
+          </div>
+        </header>
+
+      <section class="tab-panel" id="dashboardPanel">
+        <div class="panel-header">
+          <div>
+            <p class="eyebrow">Обзор системы</p>
+            <h2>Панель управления</h2>
+          </div>
+        </div>
+        <section class="data-section placeholder-section">
+          <h3>Раздел в разработке</h3>
+          <p class="section-hint">Здесь будет общий обзор CRM, быстрые показатели и рабочие уведомления.</p>
+        </section>
+      </section>
+
+      <section class="tab-panel is-hidden" id="dealsPanel">
+        <div class="panel-header">
+          <div>
+            <p class="eyebrow">Продажи</p>
+            <h2>Заказы</h2>
+          </div>
+        </div>
+        <section class="data-section placeholder-section">
+          <h3>Раздел в разработке</h3>
+          <p class="section-hint">Здесь будут заказы, статусы предложений и история работы с клиентом.</p>
+        </section>
+      </section>
+
+      <section class="tab-panel is-hidden" id="calendarPanel">
+        <div class="panel-header">
+          <div>
+            <p class="eyebrow">Планирование</p>
+            <h2>Календарь</h2>
+          </div>
+        </div>
+        <section class="data-section placeholder-section">
+          <h3>Раздел в разработке</h3>
+          <p class="section-hint">Здесь будет календарь задач, встреч, дедлайнов и производственных сроков.</p>
+        </section>
+      </section>
+
+      <section class="tab-panel is-hidden" id="tasksPanel">
+        <div class="panel-header">
+          <div>
+            <p class="eyebrow">Работа</p>
+            <h2>Задачи</h2>
+          </div>
+        </div>
+        <section class="data-section placeholder-section">
+          <h3>Раздел в разработке</h3>
+          <p class="section-hint">Здесь будут задачи менеджеров, производство и контроль выполнения.</p>
+        </section>
+      </section>
+
+      <section class="tab-panel is-hidden" id="offersPanel">
+        <div class="panel-header">
+          <div>
+            <p class="eyebrow">Коммерческие предложения</p>
+            <h2>Формирование предложения</h2>
+          </div>
+        </div>
+        <section class="data-section placeholder-section">
+          <h3>Раздел в разработке</h3>
+          <p class="section-hint">Здесь будет сбор позиций заказа и подготовка предложения для клиента.</p>
+        </section>
+      </section>
+
+      <section class="tab-panel is-hidden" id="orderPanel">
         <div class="panel-header">
           <div>
             <p class="eyebrow">Рабочий расчет</p>
@@ -1184,6 +1273,109 @@
         </section>
       </div>
 
+      <div class="modal-backdrop is-hidden" id="userSettingsModal" aria-hidden="true">
+        <section class="modal-dialog" role="dialog" aria-modal="true" aria-labelledby="userSettingsModalTitle">
+          <div class="modal-header">
+            <h2 id="userSettingsModalTitle">Настройки пользователя</h2>
+            <button type="button" class="ghost-action" id="closeUserSettingsModalButton">×</button>
+          </div>
+
+          <div class="client-modal-form">
+            <label>
+              <span>Имя</span>
+              <input id="userSettingsFirstNameInput" data-no-translate>
+            </label>
+            <label>
+              <span>Фамилия</span>
+              <input id="userSettingsLastNameInput" data-no-translate>
+            </label>
+            <label class="full-span">
+              <span>Логин</span>
+              <input id="userSettingsLoginInput" autocomplete="username" data-no-translate>
+            </label>
+            <label class="full-span">
+              <span>Изменить пароль</span>
+              <div class="password-field">
+                <input id="userSettingsPasswordInput" type="password" autocomplete="new-password" data-no-translate>
+                <button type="button" class="password-toggle" id="toggleUserSettingsPasswordButton" aria-label="Показать пароль" title="Показать пароль">👁</button>
+              </div>
+            </label>
+
+            <section class="repeatable-section full-span">
+              <div class="section-heading">
+                <h3>Тема</h3>
+              </div>
+              <div class="theme-options">
+                <label class="theme-option">
+                  <input type="checkbox" name="userTheme" value="light" data-user-theme-option>
+                  <span class="theme-preview theme-preview-light" aria-hidden="true"></span>
+                  <span>Светлая тема</span>
+                </label>
+                <label class="theme-option">
+                  <input type="checkbox" name="userTheme" value="dark" data-user-theme-option>
+                  <span class="theme-preview theme-preview-dark" aria-hidden="true"></span>
+                  <span>Темная тема</span>
+                </label>
+                <label class="theme-option">
+                  <input type="checkbox" name="userTheme" value="system" data-user-theme-option>
+                  <span class="theme-preview theme-preview-system" aria-hidden="true"></span>
+                  <span>Системная тема</span>
+                </label>
+              </div>
+            </section>
+
+            <p class="validation-message full-span" id="userSettingsValidation" role="alert"></p>
+          </div>
+
+          <div class="section-actions">
+            <button type="button" class="save-action" id="saveUserSettingsButton">Сохранить</button>
+            <span class="save-status" id="userSettingsStatus" aria-live="polite"></span>
+          </div>
+        </section>
+      </div>
+
+      <section class="tab-panel is-hidden" id="appSettingsPanel">
+        <div class="panel-header">
+          <div>
+            <p class="eyebrow">Глобальные настройки</p>
+            <h2>Настройки приложения</h2>
+          </div>
+        </div>
+
+        <section class="data-section">
+          <div class="section-heading">
+            <h3>Языки интерфейса</h3>
+            <p class="section-hint">Выключенный язык исчезает из переключателя языков.</p>
+          </div>
+          <div class="permissions-grid" id="appLanguageSettingsGrid"></div>
+        </section>
+
+        <section class="data-section">
+          <div class="section-heading">
+            <h3>Лимит пользователей</h3>
+            <p class="section-hint">Максимальное количество аккаунтов сотрудников фирмы. Суперпользователь в лимит не входит.</p>
+          </div>
+          <div class="section-fields one-column">
+            <label>
+              Максимум пользователей
+              <input id="appMaxUsersInput" type="number" min="1" step="1">
+            </label>
+          </div>
+        </section>
+
+        <section class="data-section">
+          <div class="section-heading">
+            <h3>Блоки приложения</h3>
+            <p class="section-hint">Выключенный блок скрывается в интерфейсе для всех пользователей.</p>
+          </div>
+          <div class="permissions-grid" id="appBlockSettingsGrid"></div>
+          <div class="section-actions">
+            <button type="button" class="save-action" id="saveAppSettingsButton">Сохранить</button>
+            <span class="save-status" id="appSettingsSaveStatus" aria-live="polite"></span>
+          </div>
+        </section>
+      </section>
+
       <section class="tab-panel is-hidden" id="usersPanel">
         <div class="panel-header">
           <div>
@@ -1255,6 +1447,7 @@
           </div>
         </section>
       </section>
+      </div>
     </section>
   </main>
 

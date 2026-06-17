@@ -1,12 +1,19 @@
 {
   "userPreferences": {
     "maksym": {
-      "language": "et",
+      "language": "en",
+      "theme": "light",
       "topTabOrder": [
+        "dashboard",
         "clients",
+        "offers",
+        "deals",
         "order",
+        "calendar",
+        "tasks",
         "settings",
-        "users"
+        "users",
+        "appSettings"
       ],
       "clientsTable": {
         "visibleColumns": [
@@ -26,12 +33,51 @@
       }
     },
     "viia": {
-      "language": "ru",
+      "language": "en",
+      "theme": "light",
       "topTabOrder": [
+        "dashboard",
         "clients",
+        "offers",
+        "deals",
         "order",
+        "calendar",
+        "tasks",
         "settings",
-        "users"
+        "users",
+        "appSettings"
+      ],
+      "clientsTable": {
+        "visibleColumns": [
+          "name",
+          "type",
+          "registrationNumber",
+          "vatNumber",
+          "contactPersons",
+          "emails",
+          "phones",
+          "address"
+        ],
+        "sort": {
+          "key": "name",
+          "direction": "asc"
+        }
+      }
+    },
+    "super": {
+      "language": "ru",
+      "theme": "light",
+      "topTabOrder": [
+        "dashboard",
+        "clients",
+        "offers",
+        "deals",
+        "order",
+        "calendar",
+        "tasks",
+        "settings",
+        "users",
+        "appSettings"
       ],
       "clientsTable": {
         "visibleColumns": [

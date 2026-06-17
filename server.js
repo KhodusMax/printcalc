@@ -7,6 +7,7 @@ const ROOT_DIR = __dirname;
 const DATA_DIR = path.join(ROOT_DIR, "data");
 const LEGACY_SETTINGS_FILE = path.join(DATA_DIR, "settings.json");
 const USERS_FILE = path.join(DATA_DIR, "users.json");
+const SYSTEM_FILE = path.join(DATA_DIR, "system.json");
 const CLIENTS_FILE = path.join(DATA_DIR, "clients.json");
 const CLIENTS_ARCHIVE_FILE = path.join(DATA_DIR, "clients-archive.json");
 const PRICING_FILE = path.join(DATA_DIR, "pricing.json");
@@ -92,8 +93,10 @@ function mergeClientsArchive(currentClients = []) {
 function splitSettings(settings) {
   const {
     users = [],
+    superUsers = [],
     clients = [],
     clientsArchive = [],
+    appConfig = {},
     access = {},
     products = [],
     materials = [],
@@ -104,8 +107,17 @@ function splitSettings(settings) {
     userPreferences = {}
   } = settings || {};
 
+  const tenantAccess = {
+    ...access,
+    roles: Array.isArray(access.roles) ? access.roles.filter((role) => role.id !== "superadmin") : [],
+    permissions: Object.fromEntries(
+      Object.entries(access.permissions || {}).filter(([roleId]) => roleId !== "superadmin")
+    )
+  };
+
   return {
-    usersData: { users, access },
+    usersData: { users: users.filter((user) => user.role !== "superadmin"), access: tenantAccess },
+    systemData: { superUsers, appConfig },
     clientsData: { clients },
     clientsArchiveData: { clients: clientsArchive },
     pricingData: { products, materials, finishes, digitalPrint, widePrint, clothesPrint },
@@ -114,13 +126,14 @@ function splitSettings(settings) {
 }
 
 function readSplitSettings() {
-  const requiredFiles = [USERS_FILE, CLIENTS_FILE, CLIENTS_ARCHIVE_FILE, PRICING_FILE, USER_PREFERENCES_FILE];
+  const requiredFiles = [USERS_FILE, SYSTEM_FILE, CLIENTS_FILE, CLIENTS_ARCHIVE_FILE, PRICING_FILE, USER_PREFERENCES_FILE];
   const missingFiles = requiredFiles.filter((filePath) => !fs.existsSync(filePath));
   if (missingFiles.length > 0) {
     throw new Error(`Required database files are missing: ${missingFiles.map((filePath) => path.basename(filePath)).join(", ")}`);
   }
 
   const usersData = readJsonFile(USERS_FILE);
+  const systemData = readJsonFile(SYSTEM_FILE);
   const clientsData = readJsonFile(CLIENTS_FILE);
   const clientsArchiveData = readJsonFile(CLIENTS_ARCHIVE_FILE);
   const pricingData = readJsonFile(PRICING_FILE);
@@ -129,7 +142,9 @@ function readSplitSettings() {
   return {
     ...pricingData,
     users: Array.isArray(usersData.users) ? usersData.users : [],
+    superUsers: Array.isArray(systemData.superUsers) ? systemData.superUsers : [],
     access: usersData.access || {},
+    appConfig: systemData.appConfig || {},
     clients: Array.isArray(clientsData.clients) ? clientsData.clients : [],
     clientsArchive: Array.isArray(clientsArchiveData.clients) ? clientsArchiveData.clients : [],
     userPreferences: userPreferencesData.userPreferences || {}
@@ -137,8 +152,9 @@ function readSplitSettings() {
 }
 
 function writeSplitSettings(settings) {
-  const { usersData, clientsData, pricingData, userPreferencesData } = splitSettings(settings);
+  const { usersData, systemData, clientsData, pricingData, userPreferencesData } = splitSettings(settings);
   writeJsonFile(USERS_FILE, usersData);
+  writeJsonFile(SYSTEM_FILE, systemData);
   writeJsonFile(CLIENTS_FILE, clientsData);
   mergeClientsArchive(clientsData.clients);
   writeJsonFile(PRICING_FILE, pricingData);
@@ -207,6 +223,7 @@ const server = http.createServer((request, response) => {
 server.listen(PORT, () => {
   console.log(`PrintCalc server: http://127.0.0.1:${PORT}/`);
   console.log(`Users file: ${USERS_FILE}`);
+  console.log(`System file: ${SYSTEM_FILE}`);
   console.log(`Clients file: ${CLIENTS_FILE}`);
   console.log(`Clients archive file: ${CLIENTS_ARCHIVE_FILE}`);
   console.log(`Pricing file: ${PRICING_FILE}`);
