@@ -1940,14 +1940,26 @@ function getRoleById(roleId) {
 
 function getCurrentUserPermissions() {
   const user = getCurrentUser();
-  if (user.role === "superadmin" || user.role === "admin") {
+  if (user.role === "superadmin") {
     return createAllPermissions(true);
   }
 
-  return {
+  const permissions = user.role === "admin" ? createAllPermissions(true) : {
     ...createAllPermissions(false),
     ...(settings.access?.permissions?.[user.role] || {})
   };
+
+  Object.keys(permissions).forEach((key) => {
+    if (key.startsWith("settings.") && !isAppBlockEnabled(key)) {
+      permissions[key] = false;
+    }
+  });
+  if (!isAppBlockEnabled("top.order")) permissions.order = false;
+  if (!isAppBlockEnabled("top.clients")) permissions.clients = false;
+  if (!isAppBlockEnabled("top.settings")) permissions.settings = false;
+  if (!isAppBlockEnabled("top.users")) permissions.users = false;
+
+  return permissions;
 }
 
 function hasPermission(key) {
@@ -1981,7 +1993,7 @@ function getEnabledLanguages() {
 
 function canAccessTopLevelTab(tabName) {
   if (tabName === "appSettings") return isCurrentUserSuperAdmin();
-  if (!isAppBlockEnabled(`top.${tabName}`)) return false;
+  if (!isCurrentUserSuperAdmin() && !isAppBlockEnabled(`top.${tabName}`)) return false;
   if (tabName === "order") return hasPermission("order");
   if (tabName === "clients") return hasPermission("clients");
   if (tabName === "settings") return hasPermission("settings");
@@ -2238,7 +2250,7 @@ function renderCategoryTabs() {
 }
 
 function renderDigitalSettingsTabs() {
-  const allowedTabs = DIGITAL_SETTINGS_TABS.filter((tab) => hasPermission(`settings.digital.${tab.id}`) && isAppBlockEnabled(`settings.digital.${tab.id}`));
+  const allowedTabs = DIGITAL_SETTINGS_TABS.filter((tab) => hasPermission(`settings.digital.${tab.id}`));
   if (!allowedTabs.some((tab) => tab.id === activeDigitalSettingsTab)) {
     activeDigitalSettingsTab = allowedTabs[0]?.id || DIGITAL_SETTINGS_TABS[0].id;
   }
@@ -2252,12 +2264,12 @@ function renderDigitalSettingsTabs() {
   `).join("");
 
   document.querySelectorAll("[data-digital-panel]").forEach((panel) => {
-    panel.classList.toggle("is-hidden", panel.dataset.digitalPanel !== activeDigitalSettingsTab || !hasPermission(`settings.digital.${panel.dataset.digitalPanel}`) || !isAppBlockEnabled(`settings.digital.${panel.dataset.digitalPanel}`));
+    panel.classList.toggle("is-hidden", panel.dataset.digitalPanel !== activeDigitalSettingsTab || !hasPermission(`settings.digital.${panel.dataset.digitalPanel}`));
   });
 }
 
 function renderWideSettingsTabs() {
-  const allowedTabs = WIDE_ROLL_SETTINGS_TABS.filter((tab) => hasPermission(`settings.wide.${tab.id}`) && isAppBlockEnabled(`settings.wide.${tab.id}`));
+  const allowedTabs = WIDE_ROLL_SETTINGS_TABS.filter((tab) => hasPermission(`settings.wide.${tab.id}`));
   if (!allowedTabs.some((tab) => tab.id === activeWideSettingsTab)) {
     activeWideSettingsTab = allowedTabs[0]?.id || WIDE_ROLL_SETTINGS_TABS[0].id;
   }
@@ -2271,12 +2283,12 @@ function renderWideSettingsTabs() {
   `).join("");
 
   document.querySelectorAll("[data-wide-panel]").forEach((panel) => {
-    panel.classList.toggle("is-hidden", panel.dataset.widePanel !== activeWideSettingsTab || !hasPermission(`settings.wide.${panel.dataset.widePanel}`) || !isAppBlockEnabled(`settings.wide.${panel.dataset.widePanel}`));
+    panel.classList.toggle("is-hidden", panel.dataset.widePanel !== activeWideSettingsTab || !hasPermission(`settings.wide.${panel.dataset.widePanel}`));
   });
 }
 
 function renderClothesSettingsTabs() {
-  const allowedTabs = CLOTHES_SETTINGS_TABS.filter((tab) => hasPermission(`settings.clothes.${tab.id}`) && isAppBlockEnabled(`settings.clothes.${tab.id}`));
+  const allowedTabs = CLOTHES_SETTINGS_TABS.filter((tab) => hasPermission(`settings.clothes.${tab.id}`));
   if (!allowedTabs.some((tab) => tab.id === activeClothesSettingsTab)) {
     activeClothesSettingsTab = allowedTabs[0]?.id || CLOTHES_SETTINGS_TABS[0].id;
   }
@@ -2290,7 +2302,7 @@ function renderClothesSettingsTabs() {
   `).join("");
 
   document.querySelectorAll("[data-clothes-panel]").forEach((panel) => {
-    panel.classList.toggle("is-hidden", panel.dataset.clothesPanel !== activeClothesSettingsTab || !hasPermission(`settings.clothes.${panel.dataset.clothesPanel}`) || !isAppBlockEnabled(`settings.clothes.${panel.dataset.clothesPanel}`));
+    panel.classList.toggle("is-hidden", panel.dataset.clothesPanel !== activeClothesSettingsTab || !hasPermission(`settings.clothes.${panel.dataset.clothesPanel}`));
   });
 }
 
@@ -3056,7 +3068,21 @@ function renderPermissions() {
     return;
   }
 
-  const definitions = getAccessPermissionDefinitions();
+  const definitions = getAccessPermissionDefinitions().filter((definition) => {
+    if (isCurrentUserSuperAdmin()) {
+      return true;
+    }
+    if (definition.key.startsWith("settings.")) {
+      return isAppBlockEnabled(definition.key);
+    }
+    const topLevelBlockByPermission = {
+      order: "top.order",
+      clients: "top.clients",
+      users: "top.users",
+      settings: "top.settings"
+    };
+    return !topLevelBlockByPermission[definition.key] || isAppBlockEnabled(topLevelBlockByPermission[definition.key]);
+  });
   const groupedDefinitions = definitions.reduce((groups, definition) => {
     groups[definition.group] = groups[definition.group] || [];
     groups[definition.group].push(definition);
@@ -3134,6 +3160,29 @@ function renderAppSettings() {
       </div>
     </article>
   `).join("");
+}
+
+function applyAppBlockLimitsToRolePermissions() {
+  const topLevelBlockByPermission = {
+    order: "top.order",
+    clients: "top.clients",
+    users: "top.users",
+    settings: "top.settings"
+  };
+
+  Object.entries(settings.access.permissions || {}).forEach(([roleId, permissions]) => {
+    if (roleId === "superadmin") {
+      return;
+    }
+    Object.keys(permissions).forEach((key) => {
+      if (key.startsWith("settings.") && !isAppBlockEnabled(key)) {
+        permissions[key] = false;
+      }
+      if (topLevelBlockByPermission[key] && !isAppBlockEnabled(topLevelBlockByPermission[key])) {
+        permissions[key] = false;
+      }
+    });
+  });
 }
 
 function getRemainingUsersAfterPendingDeletes() {
@@ -5273,6 +5322,7 @@ document.addEventListener("change", (event) => {
   if (input.matches("[data-app-block]")) {
     settings.appConfig.enabledBlocks[input.dataset.appBlock] = input.checked;
     appSettingsSaveStatus.textContent = "";
+    applyAppBlockLimitsToRolePermissions();
     applyRoleAccess();
     renderDigitalSettingsTabs();
     renderWideSettingsTabs();
@@ -5807,6 +5857,7 @@ document.addEventListener("click", (event) => {
   if (event.target.closest("#savePermissionsButton")) {
     settings.access.permissions.superadmin = createAllPermissions(true);
     settings.access.permissions.admin = createAllPermissions(true);
+    applyAppBlockLimitsToRolePermissions();
     saveSettings();
     applyRoleAccess();
     renderDigitalSettingsTabs();
@@ -5821,6 +5872,7 @@ document.addEventListener("click", (event) => {
     if (appMaxUsersInput) {
       settings.appConfig.maxUsers = Math.max(1, Math.floor(Number(appMaxUsersInput.value) || 1));
     }
+    applyAppBlockLimitsToRolePermissions();
     saveSettings();
     applyRoleAccess();
     renderAppSettings();
