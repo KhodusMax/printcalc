@@ -45,6 +45,14 @@
       "settings.clothes.extraWorks": true,
       "settings.clothes.clientTypes": true
     },
-    "maxUsers": 5
+    "itemLimits": {
+      "digital.standardProducts": 5,
+      "digital.materials": 5,
+      "wide.rollStandardProducts": 5,
+      "wide.rollMaterials": 5,
+      "clothes.standardProducts": 5,
+      "clothes.carrierTypes": 5
+    },
+    "maxUsers": 3
   }
 }

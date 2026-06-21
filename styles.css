@@ -55,6 +55,7 @@
 body {
   margin: 0;
   min-height: 100vh;
+  overflow-x: hidden;
   font-family: Arial, Helvetica, sans-serif;
   color: var(--ink);
   background: var(--app-bg);
@@ -227,8 +228,10 @@ textarea.is-invalid {
   display: grid;
   grid-template-columns: 248px minmax(0, 1fr);
   width: min(1480px, 100%);
+  max-width: 100vw;
   min-height: 100vh;
   margin: 0 auto;
+  overflow-x: hidden;
 }
 
 .dashboard-view.is-sidebar-collapsed {
@@ -286,6 +289,8 @@ textarea.is-invalid {
 
 .main-area {
   min-width: 0;
+  max-width: 100%;
+  overflow-x: hidden;
   padding: 22px;
 }
 
@@ -638,6 +643,9 @@ textarea.is-invalid {
 }
 
 .tab-panel {
+  min-width: 0;
+  max-width: 100%;
+  overflow: visible;
   padding: 24px;
   background: var(--panel);
   border: 1px solid var(--line);
@@ -648,6 +656,8 @@ textarea.is-invalid {
 .workspace-grid {
   display: grid;
   grid-template-columns: minmax(0, 1.3fr) minmax(280px, 0.7fr);
+  min-width: 0;
+  max-width: 100%;
   gap: 24px;
   margin-top: 24px;
 }
@@ -794,16 +804,142 @@ dd {
   margin-top: 24px;
 }
 
+.item-limits-grid {
+  display: grid;
+  gap: 14px;
+  margin-top: 16px;
+}
+
+.item-limit-group {
+  display: grid;
+  gap: 10px;
+  padding: 12px 0 0;
+  border-top: 1px solid var(--line);
+}
+
+.item-limit-group:first-child {
+  padding-top: 0;
+  border-top: 0;
+}
+
+.item-limit-group h4 {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.item-limit-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  min-height: 38px;
+  padding: 8px 10px;
+  color: var(--field-ink);
+  background: color-mix(in srgb, var(--field-bg) 88%, var(--accent) 12%);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 900;
+  text-align: left;
+  text-transform: uppercase;
+}
+
+.item-limit-toggle::after {
+  content: "▾";
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.item-limit-group.is-collapsed .item-limit-toggle::after {
+  content: "▸";
+}
+
+.item-limit-list {
+  display: grid;
+  gap: 8px;
+}
+
+.item-limit-group.is-collapsed .item-limit-list {
+  display: none;
+}
+
+.item-limit-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 92px;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  color: var(--field-ink);
+  background: var(--field-bg);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.item-limit-row span {
+  min-width: 0;
+}
+
+.item-limit-row input {
+  width: 92px;
+  min-height: 36px;
+  padding: 7px 10px;
+  text-align: right;
+}
+
 .digital-settings {
   display: grid;
   gap: 18px;
 }
 
 .data-section {
+  min-width: 0;
   padding: 18px;
   background: var(--paper);
   border: 1px solid var(--line);
   border-radius: 8px;
+}
+
+#settingsPanel .table-wrap {
+  overflow-x: visible;
+}
+
+#settingsPanel table {
+  min-width: 0;
+  table-layout: fixed;
+}
+
+#settingsPanel th,
+#settingsPanel td {
+  min-width: 0;
+  padding: 10px 8px;
+  overflow-wrap: anywhere;
+}
+
+#settingsPanel td input,
+#settingsPanel td select,
+#settingsPanel td textarea {
+  min-width: 0;
+  padding-right: 8px;
+  padding-left: 8px;
+}
+
+#settingsPanel .row-drag-cell,
+#settingsPanel .row-action-cell {
+  width: 42px;
+}
+
+#settingsPanel .drag-row-action,
+#settingsPanel .delete-row-action {
+  width: 34px;
+  min-width: 34px;
+  height: 34px;
 }
 
 .placeholder-section {

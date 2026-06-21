@@ -100,6 +100,14 @@ const CLIENT_IMPORT_FIELDS = [
   { key: "", label: "Не импортировать" },
   ...CLIENT_COLUMNS
 ];
+const APP_ITEM_LIMIT_OPTIONS = [
+  { key: "digital.standardProducts", group: "Цифровая печать", label: "Стандартная продукция" },
+  { key: "digital.materials", group: "Цифровая печать", label: "Материалы" },
+  { key: "wide.rollStandardProducts", group: "Широкоформатная печать", label: "Стандартная продукция" },
+  { key: "wide.rollMaterials", group: "Широкоформатная печать", label: "Материалы" },
+  { key: "clothes.standardProducts", group: "Печать на одежде", label: "Стандартная продукция" },
+  { key: "clothes.carrierTypes", group: "Печать на одежде", label: "Типы носителя" }
+];
 
 function getAccessPermissionDefinitions() {
   return [
@@ -192,7 +200,11 @@ function createDefaultAppConfig() {
       blocks[definition.key] = true;
       return blocks;
     }, {}),
-    maxUsers: 5
+    maxUsers: 3,
+    itemLimits: APP_ITEM_LIMIT_OPTIONS.reduce((limits, item) => {
+      limits[item.key] = 5;
+      return limits;
+    }, {})
   };
 }
 
@@ -216,6 +228,16 @@ const UI_TRANSLATIONS = {
   "Лимит пользователей": "User limit",
   "Максимальное количество аккаунтов сотрудников фирмы. Суперпользователь в лимит не входит.": "Maximum number of company employee accounts. The superuser is not included in the limit.",
   "Максимум пользователей": "Maximum users",
+  "Лимиты справочников": "Catalog limits",
+  "Максимальное количество стандартных продуктов и материалов, доступных в пакете.": "Maximum number of standard products and materials available in the package.",
+  "Цифровая печать - стандартная продукция": "Digital printing - standard products",
+  "Цифровая печать - материалы": "Digital printing - materials",
+  "Широкоформатная печать - стандартная продукция": "Wide-format printing - standard products",
+  "Широкоформатная печать - материалы": "Wide-format printing - materials",
+  "Печать на одежде - стандартная продукция": "Apparel printing - standard products",
+  "Печать на одежде - типы носителя": "Apparel printing - carrier types",
+  "Стандартная продукция": "Standard products",
+  "Типы носителя": "Carrier types",
   "Языки": "Languages",
   "Разделы меню": "Menu sections",
   "Категории пользователей": "User categories",
@@ -528,6 +550,16 @@ const UI_TRANSLATIONS_ET = {
   "Лимит пользователей": "Kasutajate limiit",
   "Максимальное количество аккаунтов сотрудников фирмы. Суперпользователь в лимит не входит.": "Ettevõtte töötajate kontode maksimaalne arv. Superkasutaja limiidi sisse ei kuulu.",
   "Максимум пользователей": "Maksimaalne kasutajate arv",
+  "Лимиты справочников": "Kataloogide limiidid",
+  "Максимальное количество стандартных продуктов и материалов, доступных в пакете.": "Paketis lubatud standardtoodete ja materjalide maksimaalne arv.",
+  "Цифровая печать - стандартная продукция": "Digitrükk - standardtooted",
+  "Цифровая печать - материалы": "Digitrükk - materjalid",
+  "Широкоформатная печать - стандартная продукция": "Suureformaadiline trükk - standardtooted",
+  "Широкоформатная печать - материалы": "Suureformaadiline trükk - materjalid",
+  "Печать на одежде - стандартная продукция": "Rõivatrükk - standardtooted",
+  "Печать на одежде - типы носителя": "Rõivatrükk - kandja tüübid",
+  "Стандартная продукция": "Standardtooted",
+  "Типы носителя": "Kandja tüübid",
   "Языки": "Keeled",
   "Разделы меню": "Menüü jaotised",
   "Категории пользователей": "Kasutajakategooriad",
@@ -1090,6 +1122,7 @@ const permissionsSaveStatus = document.querySelector("#permissionsSaveStatus");
 const appLanguageSettingsGrid = document.querySelector("#appLanguageSettingsGrid");
 const appBlockSettingsGrid = document.querySelector("#appBlockSettingsGrid");
 const appMaxUsersInput = document.querySelector("#appMaxUsersInput");
+const appItemLimitsGrid = document.querySelector("#appItemLimitsGrid");
 const saveAppSettingsButton = document.querySelector("#saveAppSettingsButton");
 const appSettingsSaveStatus = document.querySelector("#appSettingsSaveStatus");
 const clientColumnsButton = document.querySelector("#clientColumnsButton");
@@ -1612,7 +1645,11 @@ function normalizeAppConfig(appConfig = {}) {
       ...defaultsConfig.enabledBlocks,
       ...(appConfig.enabledBlocks || {})
     },
-    maxUsers: Math.max(1, Number(appConfig.maxUsers ?? defaultsConfig.maxUsers ?? 5) || 5)
+    itemLimits: {
+      ...defaultsConfig.itemLimits,
+      ...(appConfig.itemLimits || {})
+    },
+    maxUsers: Math.max(1, Number(appConfig.maxUsers ?? defaultsConfig.maxUsers ?? 3) || 3)
   };
 }
 
@@ -3122,7 +3159,7 @@ function renderAppSettings() {
   }
 
   if (appMaxUsersInput) {
-    appMaxUsersInput.value = settings.appConfig?.maxUsers || 5;
+    appMaxUsersInput.value = settings.appConfig?.maxUsers || 3;
   }
 
   const enabledLanguages = settings.appConfig?.enabledLanguages || {};
@@ -3139,6 +3176,28 @@ function renderAppSettings() {
       </div>
     </article>
   `;
+
+  if (appItemLimitsGrid) {
+    const itemLimits = settings.appConfig?.itemLimits || {};
+    const itemLimitGroups = APP_ITEM_LIMIT_OPTIONS.reduce((groups, item) => {
+      groups[item.group] = groups[item.group] || [];
+      groups[item.group].push(item);
+      return groups;
+    }, {});
+    appItemLimitsGrid.innerHTML = Object.entries(itemLimitGroups).map(([group, items]) => `
+      <article class="item-limit-group is-collapsed">
+        <button type="button" class="item-limit-toggle" data-item-limit-toggle="${escapeHtml(group)}" aria-expanded="false">${escapeHtml(group)}</button>
+        <div class="item-limit-list">
+          ${items.map((item) => `
+            <label class="item-limit-row">
+              <span>${escapeHtml(item.label)}</span>
+              <input type="number" min="1" max="9999" step="1" data-app-item-limit="${escapeHtml(item.key)}" value="${Number(itemLimits[item.key]) || 5}">
+            </label>
+          `).join("")}
+        </div>
+      </article>
+    `).join("");
+  }
 
   const groups = getAppBlockDefinitions().reduce((result, definition) => {
     result[definition.group] = result[definition.group] || [];
@@ -3160,6 +3219,57 @@ function renderAppSettings() {
       </div>
     </article>
   `).join("");
+}
+
+function getAppItemLimit(key) {
+  return Math.min(9999, Math.max(1, Math.floor(Number(settings.appConfig?.itemLimits?.[key]) || 5)));
+}
+
+function normalizeItemLimitValue(value) {
+  return Math.min(9999, Math.max(1, Math.floor(Number(value) || 1)));
+}
+
+function getLimitedItemCount(key) {
+  const counters = {
+    "digital.standardProducts": () => settings.digitalPrint.standardProducts.filter((_, index) => !isPendingDeleted("standardProducts", index)).length,
+    "digital.materials": () => settings.digitalPrint.materials.filter((_, index) => !isPendingDeleted("materials", index)).length,
+    "wide.rollStandardProducts": () => settings.widePrint.rollStandardProducts.filter((_, index) => !isPendingWideDeleted("rollStandardProducts", index)).length,
+    "wide.rollMaterials": () => settings.widePrint.rollMaterials.filter((_, index) => !isPendingWideDeleted("rollMaterials", index)).length,
+    "clothes.standardProducts": () => settings.clothesPrint.standardProducts.filter((_, index) => !isPendingClothesDeleted("standardProducts", index)).length,
+    "clothes.carrierTypes": () => settings.clothesPrint.carrierTypes.filter((_, index) => !isPendingClothesDeleted("carrierTypes", index)).length
+  };
+  return counters[key]?.() ?? 0;
+}
+
+function getLimitKeyForSettingsList(area, list) {
+  const keys = {
+    digital: {
+      standardProducts: "digital.standardProducts",
+      materials: "digital.materials"
+    },
+    wide: {
+      rollStandardProducts: "wide.rollStandardProducts",
+      rollMaterials: "wide.rollMaterials"
+    },
+    clothes: {
+      standardProducts: "clothes.standardProducts",
+      carrierTypes: "clothes.carrierTypes"
+    }
+  };
+  return keys[area]?.[list] || "";
+}
+
+function canAddLimitedSettingsRow(area, list) {
+  const limitKey = getLimitKeyForSettingsList(area, list);
+  if (!limitKey) {
+    return true;
+  }
+  return getLimitedItemCount(limitKey) < getAppItemLimit(limitKey);
+}
+
+function getLimitReachedMessage(limitKey) {
+  const option = APP_ITEM_LIMIT_OPTIONS.find((item) => item.key === limitKey);
+  return `Достигнут лимит пакета: ${option ? `${option.group} - ${option.label}` : "справочник"} - ${getAppItemLimit(limitKey)}.`;
 }
 
 function applyAppBlockLimitsToRolePermissions() {
@@ -5338,6 +5448,14 @@ document.addEventListener("change", (event) => {
     return;
   }
 
+  if (input.matches("[data-app-item-limit]")) {
+    settings.appConfig.itemLimits = settings.appConfig.itemLimits || {};
+    settings.appConfig.itemLimits[input.dataset.appItemLimit] = normalizeItemLimitValue(input.value);
+    input.value = settings.appConfig.itemLimits[input.dataset.appItemLimit];
+    appSettingsSaveStatus.textContent = "";
+    return;
+  }
+
   if (input.matches("[data-select-client]")) {
     const index = Number(input.dataset.selectClient);
     if (input.checked) {
@@ -5703,6 +5821,11 @@ document.addEventListener("click", (event) => {
   const addWideRowButton = event.target.closest("[data-add-wide-row]");
   if (addWideRowButton) {
     const list = addWideRowButton.dataset.addWideRow;
+    if (!canAddLimitedSettingsRow("wide", list)) {
+      const limitKey = getLimitKeyForSettingsList("wide", list);
+      showWideStatus(list, getLimitReachedMessage(limitKey), true);
+      return;
+    }
     const rows = {
       rollStandardProducts: { category: WIDE_CATEGORY, name: "Untitled", basePrice: 0, quantity: 1 },
       rollMaterials: { name: "", price: 0 },
@@ -5754,6 +5877,11 @@ document.addEventListener("click", (event) => {
   const addClothesRowButton = event.target.closest("[data-add-clothes-row]");
   if (addClothesRowButton) {
     const list = addClothesRowButton.dataset.addClothesRow;
+    if (!canAddLimitedSettingsRow("clothes", list)) {
+      const limitKey = getLimitKeyForSettingsList("clothes", list);
+      showClothesStatus(list, getLimitReachedMessage(limitKey), true);
+      return;
+    }
     const rows = {
       standardProducts: { category: CLOTHES_CATEGORY, name: "Untitled", basePrice: 0, quantity: 1 },
       quantityFormulas: { from: 1, to: 1, formula: "" },
@@ -5872,6 +6000,11 @@ document.addEventListener("click", (event) => {
     if (appMaxUsersInput) {
       settings.appConfig.maxUsers = Math.max(1, Math.floor(Number(appMaxUsersInput.value) || 1));
     }
+    document.querySelectorAll("[data-app-item-limit]").forEach((input) => {
+      settings.appConfig.itemLimits = settings.appConfig.itemLimits || {};
+      settings.appConfig.itemLimits[input.dataset.appItemLimit] = normalizeItemLimitValue(input.value);
+      input.value = settings.appConfig.itemLimits[input.dataset.appItemLimit];
+    });
     applyAppBlockLimitsToRolePermissions();
     saveSettings();
     applyRoleAccess();
@@ -5879,6 +6012,14 @@ document.addEventListener("click", (event) => {
     updateLanguageMenu();
     applyLanguage();
     appSettingsSaveStatus.textContent = translateStaticText("Сохранено", currentLanguage);
+    return;
+  }
+
+  const itemLimitToggle = event.target.closest("[data-item-limit-toggle]");
+  if (itemLimitToggle) {
+    const group = itemLimitToggle.closest(".item-limit-group");
+    const isCollapsed = group.classList.toggle("is-collapsed");
+    itemLimitToggle.setAttribute("aria-expanded", String(!isCollapsed));
     return;
   }
 
@@ -6165,6 +6306,11 @@ document.addEventListener("click", (event) => {
   const addDigitalRowButton = event.target.closest("[data-add-digital-row]");
   if (addDigitalRowButton) {
     const list = addDigitalRowButton.dataset.addDigitalRow;
+    if (!canAddLimitedSettingsRow("digital", list)) {
+      const limitKey = getLimitKeyForSettingsList("digital", list);
+      showSectionError(getSectionByList(list), getLimitReachedMessage(limitKey));
+      return;
+    }
     settings.digitalPrint[list].push(createDigitalRow(list));
     if (list !== "materials") {
       saveSettings();
